@@ -14,6 +14,6 @@ struct CH6_Watch_AppApp: App {
         WindowGroup {
             MainTabView()
         }
-        .modelContainer(for: [MoodEntry.self, NudgeEntry.self, Contact.self, Challenge.self])
+        .modelContainer(for: [MoodEntry.self, NudgeEntry.self, Contact.self, Challenge.self, UserProfile.self])
     }
 }
