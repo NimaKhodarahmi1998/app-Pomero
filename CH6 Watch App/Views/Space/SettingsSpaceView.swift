@@ -1,42 +1,55 @@
 import SwiftUI
+import SwiftData
 
 struct SettingsSpaceView: View {
-    @State private var cloudKit = CloudKitService.shared
-    @State private var showDisconnectAlert = false
+    @Environment(\.modelContext) private var modelContext
+    @Query private var contacts: [Contact]
+    @State private var showDeleteAlert = false
+    @State private var contactToDelete: Contact?
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                Image(systemName: "gearshape.fill")
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
+        VStack(spacing: 12) {
+            Image(systemName: "gearshape.fill")
+                .font(.title3)
+                .foregroundStyle(.secondary)
 
-                if let code = cloudKit.connectionCode {
-                    VStack(spacing: 2) {
-                        Text("Connection")
+            Text("Settings")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            if !contacts.isEmpty {
+                Divider()
+
+                ForEach(contacts) { contact in
+                    HStack {
+                        Text(contact.emoji)
+                        Text(contact.displayName)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(code)
-                            .font(.caption)
-                            .fontDesign(.monospaced)
+                        Spacer()
+                        Button(role: .destructive) {
+                            contactToDelete = contact
+                            showDeleteAlert = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.caption2)
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.red)
                     }
-                }
-
-                Button(role: .destructive) {
-                    showDisconnectAlert = true
-                } label: {
-                    Label("Disconnect", systemImage: "link.badge.plus")
-                }
-                .alert("Disconnect?", isPresented: $showDisconnectAlert) {
-                    Button("Cancel", role: .cancel) {}
-                    Button("Disconnect", role: .destructive) {
-                        cloudKit.disconnect()
-                    }
-                } message: {
-                    Text("This will end the connection. You'll need a new code to reconnect.")
                 }
             }
-            .padding(.horizontal)
+        }
+        .alert("Remove?", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Remove", role: .destructive) {
+                if let contact = contactToDelete {
+                    modelContext.delete(contact)
+                }
+            }
+        } message: {
+            if let contact = contactToDelete {
+                Text("Remove \(contact.displayName)? This can't be undone.")
+            }
         }
     }
 }

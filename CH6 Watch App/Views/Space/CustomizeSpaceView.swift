@@ -1,9 +1,10 @@
 import SwiftUI
+import SwiftData
 import WatchKit
 
 struct CustomizeSpaceView: View {
     @Environment(\.dismiss) private var dismiss
-    @Bindable var contact: Contact
+    var contact: Contact
 
     @State private var nickname: String = ""
     @State private var selectedEmoji: String = ""

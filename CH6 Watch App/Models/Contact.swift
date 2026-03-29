@@ -27,6 +27,8 @@ enum SpaceColor: String, Codable, CaseIterable, Identifiable {
     case red, orange, yellow, green, mint, teal, cyan, blue, indigo, purple, pink
 
     var id: String { rawValue }
+
+    var color: String { rawValue }
 }
 
 @Model
@@ -45,6 +47,11 @@ final class Contact {
     var streakCount: Int
     var lastInteractionDate: Date?
 
+    // Stats
+    var totalNudgesSent: Int
+    var totalMoodsSet: Int
+    var uniqueMoodsUsed: [String]
+
     init(
         name: String,
         relationship: RelationshipType,
@@ -56,6 +63,9 @@ final class Contact {
         self.emoji = emoji
         self.spaceColor = spaceColor
         self.streakCount = 0
+        self.totalNudgesSent = 0
+        self.totalMoodsSet = 0
+        self.uniqueMoodsUsed = []
     }
 
     var displayName: String {

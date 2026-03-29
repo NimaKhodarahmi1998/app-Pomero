@@ -5,14 +5,15 @@ import WatchKit
 struct SendNudgeView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    let contact: Contact
+    var contact: Contact
 
     @State private var sent = false
+    @State private var sentType: NudgeType?
 
     var body: some View {
         ScrollView {
             VStack(spacing: 8) {
-                Text("Send to \(contact.name)")
+                Text("Nudge \(contact.displayName)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -33,10 +34,21 @@ struct SendNudgeView: View {
             }
             .padding(.horizontal)
         }
-        .navigationTitle("Nudge")
         .overlay {
-            if sent {
-                sentOverlay
+            if sent, let type = sentType {
+                VStack(spacing: 6) {
+                    Text(type.emoji)
+                        .font(.system(size: 40))
+                    Image(systemName: "paperplane.fill")
+                        .font(.title3)
+                        .foregroundStyle(.green)
+                    Text("Sent!")
+                        .font(.caption2)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.ultraThinMaterial)
+                .transition(.opacity)
+                .animation(.easeInOut, value: sent)
             }
         }
     }
@@ -49,28 +61,17 @@ struct SendNudgeView: View {
         )
         modelContext.insert(entry)
         contact.lastNudgeDate = .now
+        contact.totalNudgesSent += 1
         StreakService.recordInteraction(for: contact)
+        ChallengeService.recordNudgeSent(for: contact, context: modelContext)
         WKInterfaceDevice.current().play(.notification)
 
+        sentType = type
         sent = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             sent = false
             dismiss()
         }
-    }
-
-    private var sentOverlay: some View {
-        VStack(spacing: 6) {
-            Image(systemName: "paperplane.fill")
-                .font(.system(size: 36))
-                .foregroundStyle(.green)
-            Text("Sent!")
-                .font(.caption)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.ultraThinMaterial)
-        .transition(.opacity)
-        .animation(.easeInOut, value: sent)
     }
 }
 

@@ -12,30 +12,8 @@ import SwiftData
 struct CH6_Watch_AppApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()
         }
-        .modelContainer(for: [MoodEntry.self, NudgeEntry.self, Contact.self], inMemory: true)
-    }
-}
-
-struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var contacts: [Contact]
-    @State private var seeded = false
-
-    var body: some View {
-        MainTabView()
-            .onAppear {
-                guard !seeded else { return }
-                seeded = true
-                if contacts.isEmpty {
-                    let samples = [
-                        Contact(name: "Alex", relationship: .partner, emoji: "❤️", spaceColor: .purple),
-                        Contact(name: "Jordan", relationship: .closeFriend, emoji: "🦊", spaceColor: .teal),
-                        Contact(name: "Sam", relationship: .coworker, emoji: "☀️", spaceColor: .indigo),
-                    ]
-                    samples.forEach { modelContext.insert($0) }
-                }
-            }
+        .modelContainer(for: [MoodEntry.self, NudgeEntry.self, Contact.self, Challenge.self])
     }
 }
