@@ -7,12 +7,25 @@
 		<key>CH6 Watch App.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>0</integer>
 		</dict>
 		<key>CH6.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>1</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>787E6BCF2F7680F900079BA5</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>787E6BDC2F7680FA00079BA5</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

@@ -4,7 +4,7 @@ import WatchKit
 
 struct OnboardingView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var step = 0
+    @State private var path: [Int] = []
     @State private var name = ""
     @State private var selectedEmoji = "❤️"
     @State private var selectedColor: SpaceColor = .purple
@@ -12,134 +12,137 @@ struct OnboardingView: View {
     var onComplete: () -> Void
 
     private let emojiOptions = [
-        "❤️", "🧡", "💛", "💚", "💙", "💜",
-        "🦊", "🐻", "🐰", "🐱", "🐶", "🦋",
-        "🌸", "🌻", "🔥", "⭐", "🌙", "☀️"
+        // Hearts & love
+        "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "💕", "💞", "💗", "❤️‍🔥",
+        // Animals
+        "🦊", "🐻", "🐰", "🐱", "🐶", "🦋", "🐼", "🐨", "🦁", "🐯", "🦄", "🐸",
+        "🐧", "🦉", "🐺", "🦚", "🐬",
+        // Nature
+        "🌸", "🌻", "🌹", "🌺", "🍀", "🌿", "🌴", "🌵", "🍁", "🌾",
+        // Sky & elements
+        "⭐", "🌙", "☀️", "🌈", "⚡", "🌊", "🔥", "❄️", "🌼", "☁️",
+        // Fun
+        "✨", "💎", "🎯", "🎸", "🎨", "🍓", "🫐", "🎀", "🪐", "🎵"
     ]
 
     var body: some View {
-        TabView(selection: $step) {
-            // Step 0: Welcome
+        NavigationStack(path: $path) {
             welcomeStep
-                .tag(0)
-
-            // Step 1: Name
-            nameStep
-                .tag(1)
-
-            // Step 2: Relationship
-            relationshipStep
-                .tag(2)
-
-            // Step 3: Emoji
-            emojiStep
-                .tag(3)
-
-            // Step 4: Color
-            colorStep
-                .tag(4)
+                .navigationDestination(for: Int.self) { step in
+                    switch step {
+                    case 1: nameStep
+                    case 2: relationshipStep
+                    case 3: emojiStep
+                    case 4: colorStep
+                    default: EmptyView()
+                    }
+                }
         }
-        .tabViewStyle(.verticalPage)
     }
 
     // MARK: - Steps
 
     private var welcomeStep: some View {
-        VStack(spacing: 12) {
-            Text("✨")
-                .font(.system(size: 44))
-            Text("Welcome to CH6")
-                .font(.headline)
-            Text("Who matters most to you?")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            Text("Swipe down to start")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
+        ScrollView {
+            VStack() {
+                Text("✨")
+                    .font(.largeTitle)
+                Text("Connesso")
+                    .font(.headline)
+                Text("Who matters most to you?")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                Button("Add Person") { advance() }
+                    .buttonStyle(.borderedProminent)
+            }
+            .padding()
         }
     }
 
     private var nameStep: some View {
-        VStack(spacing: 12) {
-            Text("Their name")
-                .font(.headline)
-            TextField("Name", text: $name)
+        ScrollView {
+            VStack(spacing: 12) {
+                Text("Their name/nickname")
+                    .font(.headline)
+                TextField("Name", text: $name)
+                Button("Next") { advance() }
+                    .disabled(name.isEmpty)
+                    .buttonStyle(.borderedProminent)
+            }
+            .padding(.horizontal)
         }
-        .padding(.horizontal)
+        //.navigationTitle("Name")
     }
 
     private var relationshipStep: some View {
-        VStack(spacing: 8) {
-            Text("They are your...")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            ForEach(RelationshipType.allCases) { rel in
-                Button {
-                    selectedRelationship = rel
-                    WKInterfaceDevice.current().play(.click)
-                } label: {
-                    HStack {
-                        Image(systemName: rel.icon)
-                        Text(rel.label)
-                            .font(.caption)
-                        Spacer()
-                        if selectedRelationship == rel {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(.green)
+        List {
+            Section("Who are they to you?") {
+                ForEach(RelationshipType.allCases) { rel in
+                    Button {
+                        selectedRelationship = rel
+                        WKInterfaceDevice.current().play(.click)
+                        advance()
+                    } label: {
+                        HStack {
+                            Label(rel.label, systemImage: rel.icon)
+                            Spacer()
+                            if selectedRelationship == rel {
+                                Image(systemName: "checkmark").foregroundStyle(.tint)
+                            }
                         }
                     }
-                    .padding(.vertical, 4)
                 }
-                .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal)
     }
 
     private var emojiStep: some View {
-        let columns = [
-            GridItem(.flexible()), GridItem(.flexible()),
-            GridItem(.flexible()), GridItem(.flexible()),
-            GridItem(.flexible()), GridItem(.flexible())
-        ]
-        return VStack(spacing: 8) {
-            Text("Pick their emoji")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            LazyVGrid(columns: columns, spacing: 6) {
+        ScrollView {
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+            LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(emojiOptions, id: \.self) { emoji in
                     Button {
                         selectedEmoji = emoji
                         WKInterfaceDevice.current().play(.click)
                     } label: {
-                        Text(emoji)
-                            .font(.system(size: 22))
-                            .padding(4)
-                            .background(
-                                Circle().fill(selectedEmoji == emoji ? .white.opacity(0.2) : .clear)
-                            )
+                        Circle()
+                            .fill(Color.white.opacity(0.13))
+                            .aspectRatio(1, contentMode: .fit)
+                            .overlay {
+                                Text(emoji).font(.title2)
+                            }
+                            .overlay {
+                                if selectedEmoji == emoji {
+                                    Circle().strokeBorder(.white, lineWidth: 2.5)
+                                }
+                            }
                     }
                     .buttonStyle(.plain)
+                    .scrollTransition(.animated.threshold(.visible(0.3))) { content, phase in
+                        content
+                            .scaleEffect(1 - abs(phase.value) * 0.3)
+                            .opacity(1 - abs(phase.value) * 0.5)
+                    }
+                }
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 4)
+            .padding(.bottom, 8)
+        }
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button { advance() } label: {
+                    Image(systemName: "checkmark").fontWeight(.semibold)
                 }
             }
         }
-        .padding(.horizontal)
     }
 
     private var colorStep: some View {
-        let columns = [
-            GridItem(.flexible()), GridItem(.flexible()),
-            GridItem(.flexible()), GridItem(.flexible())
-        ]
-        return VStack(spacing: 10) {
-            Text("Pick their color")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            LazyVGrid(columns: columns, spacing: 8) {
+        ScrollView {
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
+            LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(SpaceColor.allCases) { color in
                     Button {
                         selectedColor = color
@@ -147,30 +150,39 @@ struct OnboardingView: View {
                     } label: {
                         Circle()
                             .fill(colorValue(color))
-                            .frame(width: 28, height: 28)
+                            .aspectRatio(1, contentMode: .fit)
                             .overlay {
                                 if selectedColor == color {
-                                    Image(systemName: "checkmark")
-                                        .font(.caption2)
-                                        .fontWeight(.bold)
-                                        .foregroundStyle(.white)
+                                    Circle().strokeBorder(.white, lineWidth: 2.5)
                                 }
                             }
                     }
                     .buttonStyle(.plain)
+                    .scrollTransition(.animated.threshold(.visible(0.3))) { content, phase in
+                        content
+                            .scaleEffect(1 - abs(phase.value) * 0.3)
+                            .opacity(1 - abs(phase.value) * 0.5)
+                    }
                 }
             }
-
-            Button("Done") {
-                createContact()
-            }
-            .disabled(name.isEmpty)
-            .tint(.green)
+            .padding(.horizontal, 8)
+            .padding(.top, 4)
+            .padding(.bottom, 8)
         }
-        .padding(.horizontal)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button { createContact() } label: {
+                    Image(systemName: "checkmark").fontWeight(.semibold)
+                }
+            }
+        }
     }
 
     // MARK: - Actions
+
+    private func advance() {
+        path.append(path.count + 1)
+    }
 
     private func createContact() {
         let contact = Contact(
@@ -181,34 +193,24 @@ struct OnboardingView: View {
         )
         modelContext.insert(contact)
 
-        // Create initial challenges for this contact
-        let dailyTypes: [ChallengeType] = [.checkInMood, .sendNudge]
-        let weeklyTypes: [ChallengeType] = [.streakWeek, .fiveNudges]
-        let monthlyTypes: [ChallengeType] = [.thirtyDayStreak]
-
-        for type in dailyTypes + weeklyTypes + monthlyTypes {
+        let challengeTypes: [ChallengeType] = [
+            .checkInMood, .sendNudge,
+            .streakWeek, .fiveNudges, .allMoods,
+            .thirtyDayStreak, .hundredNudges, .moodJourney
+        ]
+        for type in challengeTypes {
             let challenge = Challenge(type: type, contactName: name)
             modelContext.insert(challenge)
         }
+
+        AchievementService.createAll(for: name, context: modelContext)
 
         WKInterfaceDevice.current().play(.success)
         onComplete()
     }
 
     private func colorValue(_ spaceColor: SpaceColor) -> Color {
-        switch spaceColor {
-        case .red: .red
-        case .orange: .orange
-        case .yellow: .yellow
-        case .green: .green
-        case .mint: .mint
-        case .teal: .teal
-        case .cyan: .cyan
-        case .blue: .blue
-        case .indigo: .indigo
-        case .purple: .purple
-        case .pink: .pink
-        }
+        colorFor(spaceColor)
     }
 }
 

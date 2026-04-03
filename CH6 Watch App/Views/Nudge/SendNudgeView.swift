@@ -11,39 +11,35 @@ struct SendNudgeView: View {
     @State private var sentType: NudgeType?
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 8) {
-                Text("Nudge \(contact.displayName)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                ForEach(NudgeType.allCases) { nudge in
+        List {
+            Section {
+                ForEach(NudgeType.nudges(for: contact.relationship)) { nudge in
                     Button {
                         sendNudge(nudge)
                     } label: {
-                        HStack {
-                            Text(nudge.emoji)
-                                .font(.title3)
+                        Label {
                             Text(nudge.label)
-                                .font(.caption)
-                            Spacer()
+                        } icon: {
+                            Text(nudge.emoji)
                         }
-                        .padding(.vertical, 4)
                     }
                 }
+            } header: {
+                Text("Nudge \(contact.displayName)")
+                    .font(.footnote)
+                    .textCase(nil)
             }
-            .padding(.horizontal)
         }
         .overlay {
             if sent, let type = sentType {
-                VStack(spacing: 6) {
+                VStack(spacing: 8) {
                     Text(type.emoji)
                         .font(.system(size: 40))
                     Image(systemName: "paperplane.fill")
                         .font(.title3)
                         .foregroundStyle(.green)
                     Text("Sent!")
-                        .font(.caption2)
+                        .font(.caption)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.ultraThinMaterial)
@@ -54,11 +50,7 @@ struct SendNudgeView: View {
     }
 
     private func sendNudge(_ type: NudgeType) {
-        let entry = NudgeEntry(
-            type: type,
-            isSent: true,
-            contactName: contact.name
-        )
+        let entry = NudgeEntry(type: type, isSent: true, contactName: contact.name)
         modelContext.insert(entry)
         contact.lastNudgeDate = .now
         contact.totalNudgesSent += 1
@@ -68,7 +60,8 @@ struct SendNudgeView: View {
 
         sentType = type
         sent = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        Task {
+            try? await Task.sleep(for: .seconds(1))
             sent = false
             dismiss()
         }

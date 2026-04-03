@@ -23,51 +23,39 @@ struct ChallengeListView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 14) {
-                Text("Challenges")
-                    .font(.headline)
-
-                if !dailyChallenges.isEmpty {
-                    challengeSection("Daily", icon: "sun.max.fill", challenges: dailyChallenges)
-                }
-
-                if !weeklyChallenges.isEmpty {
-                    challengeSection("Weekly", icon: "calendar", challenges: weeklyChallenges)
-                }
-
-                if !monthlyChallenges.isEmpty {
-                    challengeSection("Monthly", icon: "moon.stars.fill", challenges: monthlyChallenges)
-                }
-
-                if challenges.isEmpty {
-                    Text("No challenges yet")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+        List {
+            if !dailyChallenges.isEmpty {
+                Section("Daily") {
+                    ForEach(dailyChallenges) { challenge in
+                        ChallengeRow(challenge: challenge)
+                    }
                 }
             }
-            .padding(.horizontal)
+
+            if !weeklyChallenges.isEmpty {
+                Section("Weekly") {
+                    ForEach(weeklyChallenges) { challenge in
+                        ChallengeRow(challenge: challenge)
+                    }
+                }
+            }
+
+            if !monthlyChallenges.isEmpty {
+                Section("Monthly") {
+                    ForEach(monthlyChallenges) { challenge in
+                        ChallengeRow(challenge: challenge)
+                    }
+                }
+            }
+
+            if challenges.isEmpty {
+                Text("No challenges yet")
+                    .foregroundStyle(.secondary)
+            }
         }
+        .navigationTitle("Challenges")
         .onAppear {
-            ChallengeService.resetDailyChallenges(for: contact.name, context: modelContext)
-        }
-    }
-
-    @ViewBuilder
-    private func challengeSection(_ title: String, icon: String, challenges: [Challenge]) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Text(title)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-
-            ForEach(challenges) { challenge in
-                ChallengeRow(challenge: challenge)
-            }
+            ChallengeService.resetChallengesIfNeeded(for: contact.name, context: modelContext)
         }
     }
 }
@@ -76,43 +64,30 @@ struct ChallengeRow: View {
     let challenge: Challenge
 
     var body: some View {
-        HStack(spacing: 8) {
-            // Progress ring
-            ZStack {
-                Circle()
-                    .stroke(.white.opacity(0.1), lineWidth: 3)
-                    .frame(width: 28, height: 28)
-                Circle()
-                    .trim(from: 0, to: challenge.progressFraction)
-                    .stroke(
-                        challenge.isCompleted ? Color.green : Color.orange,
-                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
-                    )
-                    .frame(width: 28, height: 28)
-                    .rotationEffect(.degrees(-90))
-
+        HStack(spacing: 10) {
+            Gauge(value: challenge.progressFraction) {
+                EmptyView()
+            } currentValueLabel: {
                 if challenge.isCompleted {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(.green)
                 } else {
                     Text(challenge.type.emoji)
-                        .font(.system(size: 10))
                 }
             }
+            .gaugeStyle(.accessoryCircularCapacity)
+            .tint(challenge.isCompleted ? .green : .orange)
+            .frame(width: 30, height: 30)
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(challenge.type.title)
-                    .font(.caption2)
-                    .foregroundStyle(challenge.isCompleted ? .green : .white)
+                    .font(.footnote)
+                    .foregroundStyle(challenge.isCompleted ? .green : .primary)
                 Text("\(challenge.progress)/\(challenge.type.target)")
-                    .font(.system(size: 9))
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
             }
-
-            Spacer()
         }
-        .padding(.vertical, 2)
     }
 }
 

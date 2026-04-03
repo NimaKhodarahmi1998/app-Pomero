@@ -3,217 +3,281 @@ import SwiftData
 import WatchKit
 
 struct PersonSpaceView: View {
+    let contactName: String
+
     @Environment(\.modelContext) private var modelContext
-    var contact: Contact
+    @Query private var allContacts: [Contact]
+    @Query private var allAchievements: [Achievement]
+    @Query private var allChallenges: [Challenge]
 
     @State private var showMoodPicker = false
     @State private var showNudgePicker = false
     @State private var showCustomize = false
-    @State private var showChallenges = false
-    @State private var breathe = false
+    @State private var showGoals = false
+    @State private var unlockedAchievement: AchievementType?
 
-    @Query(sort: \NudgeEntry.timestamp, order: .reverse)
-    private var allNudges: [NudgeEntry]
+    @State private var pulseScale: CGFloat = 1.0
+    @State private var gradientShift = false
+    @State private var particleDrift = false
 
-    @Query(sort: \MoodEntry.timestamp, order: .reverse)
-    private var allMoods: [MoodEntry]
-
-    private var recentNudges: [NudgeEntry] {
-        allNudges.filter { $0.contactName == contact.name }
+    private var contact: Contact? {
+        allContacts.first { $0.name == contactName }
     }
 
-    private var moodHistory: [MoodEntry] {
-        allMoods.filter { $0.contact?.name == contact.name }
+    private var contactAchievements: [Achievement] {
+        allAchievements.filter { $0.contactName == contactName }
+    }
+
+    private var dailyChallenges: [Challenge] {
+        allChallenges.filter { $0.contactName == contactName && $0.type.period == .daily }
+    }
+
+    private var completedDailyCount: Int {
+        dailyChallenges.filter { $0.isCompleted }.count
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 12) {
-                    // Breathing avatar emoji
-                    Text(contact.emoji)
-                        .font(.system(size: 48))
-                        .scaleEffect(breathe ? 1.08 : 0.95)
-                        .animation(
-                            .easeInOut(duration: 2.5).repeatForever(autoreverses: true),
-                            value: breathe
-                        )
-                        .onAppear { breathe = true }
+        if let contact {
+            ZStack {
+                background(contact: contact)
+                floatingParticles
 
-                    // Name
+                VStack(spacing: 0) {
+
+                    Spacer()
+
+                    // Emoji + streak ring
+                    ZStack {
+                        Circle()
+                            .stroke(.white.opacity(0.10), lineWidth: 3)
+
+                        if contact.streakCount > 0 {
+                            Circle()
+                                .trim(from: 0, to: min(Double(contact.streakCount) / 7.0, 1.0))
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [.orange, .yellow],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                                )
+                                .rotationEffect(.degrees(-90))
+                        }
+
+                        Text(contact.emoji)
+                            .font(.system(size: 38))
+                            .scaleEffect(pulseScale)
+                    }
+                    .frame(width: 62, height: 62)
+
+                    Spacer().frame(height: 5)
+
                     Text(contact.displayName)
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .fontWeight(.semibold)
 
-                    // Streak
-                    if contact.streakCount > 0 {
-                        HStack(spacing: 4) {
-                            Image(systemName: "flame.fill")
-                                .foregroundStyle(.orange)
-                                .font(.caption)
-                            Text("\(contact.streakCount)")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundStyle(.white)
-                        }
-                    }
+                    Spacer().frame(height: 2)
 
-                    // Current mood
-                    if let mood = contact.currentMood {
-                        VStack(spacing: 2) {
-                            Text(mood.emoji)
-                                .font(.system(size: 32))
-                            Text(mood.label)
+                    // Relationship (left) ←——→ last active (right)
+                    HStack {
+                        Text(contact.relationship.label)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        if let date = contact.lastInteractionDate {
+                            Text(date, style: .relative)
                                 .font(.caption2)
-                                .foregroundStyle(.white.opacity(0.7))
+                                .foregroundStyle(.tertiary)
                         }
                     }
+                    .padding(.horizontal, 14)
 
-                    // Mood history dots (last 7)
-                    if !moodHistory.isEmpty {
-                        HStack(spacing: 4) {
-                            ForEach(moodHistory.prefix(7)) { entry in
-                                Text(entry.type.emoji)
-                                    .font(.system(size: 10))
+                    Spacer().frame(height: 8)
+
+                    // Info tiles
+                    HStack(spacing: 5) {
+                        infoTile(action: { showMoodPicker = true }) {
+                            if let mood = contact.currentMood {
+                                Text(mood.emoji).font(.system(size: 18))
+                                Text(mood.label)
+                            } else {
+                                Image(systemName: "face.smiling")
+                                    .font(.system(size: 15))
+                                    .foregroundStyle(.secondary)
+                                Text("Mood")
                             }
                         }
-                    }
 
-                    // Last nudge exchange
-                    if let lastNudge = recentNudges.first {
-                        HStack(spacing: 4) {
-                            Text(lastNudge.isSent ? "You:" : "\(contact.displayName):")
-                                .font(.system(size: 9))
-                                .foregroundStyle(.white.opacity(0.5))
-                            Text(lastNudge.type.emoji)
-                                .font(.system(size: 12))
-                            Text(lastNudge.timestamp, style: .relative)
-                                .font(.system(size: 9))
-                                .foregroundStyle(.white.opacity(0.4))
+                        infoTile(action: { showNudgePicker = true }) {
+                            Text("👋").font(.system(size: 18))
+                            Text(contact.totalNudgesSent > 0 ? "\(contact.totalNudgesSent)" : "Nudge")
+                        }
+
+                        infoTile(action: { showGoals = true }) {
+                            Text("🎯").font(.system(size: 18))
+                            Text(dailyChallenges.isEmpty ? "Goals" : "\(completedDailyCount)/\(dailyChallenges.count)")
                         }
                     }
+                    .padding(.horizontal, 6)
 
-                    // Action buttons
-                    HStack(spacing: 8) {
-                        spaceButton(icon: "face.smiling", label: "Mood") {
-                            showMoodPicker = true
+                    Spacer()
+
+                    // Style — the only action not covered by the tiles
+                    Button { showCustomize = true } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "paintbrush.fill")
+                                .font(.system(size: 10))
+                            Text("Style")
+                                .font(.system(size: 10, weight: .medium))
                         }
-                        spaceButton(icon: "hand.tap", label: "Nudge") {
-                            showNudgePicker = true
-                        }
-                        spaceButton(icon: "trophy", label: "Goals") {
-                            showChallenges = true
-                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                        .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 6)
+
+                    Spacer().frame(height: 10)
+                }
+
+                if let achievement = unlockedAchievement {
+                    AchievementUnlockView(type: achievement) {
+                        unlockedAchievement = nil
                     }
                 }
-                .padding(.horizontal)
             }
-            .background(moodReactiveBackground)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showCustomize = true
-                    } label: {
-                        Image(systemName: "paintbrush")
-                            .font(.caption2)
-                    }
-                }
+            .onAppear {
+                ensureAchievementsExist()
+                startAnimations()
             }
             .sheet(isPresented: $showMoodPicker) {
                 MoodSelectionView(contact: contact)
+                    .onDisappear { checkAchievements(contact: contact) }
             }
             .sheet(isPresented: $showNudgePicker) {
                 SendNudgeView(contact: contact)
+                    .onDisappear { checkAchievements(contact: contact) }
             }
             .sheet(isPresented: $showCustomize) {
                 CustomizeSpaceView(contact: contact)
             }
-            .sheet(isPresented: $showChallenges) {
-                ChallengeListView(contact: contact)
+            .sheet(isPresented: $showGoals) {
+                GoalsView(contact: contact)
             }
         }
     }
 
-    // MARK: - Components
+    // MARK: - Info tile
 
-    private func spaceButton(icon: String, label: String, action: @escaping () -> Void) -> some View {
+    private func infoTile<Content: View>(
+        action: @escaping () -> Void,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
         Button(action: action) {
             VStack(spacing: 3) {
-                Image(systemName: icon)
-                    .font(.body)
-                Text(label)
-                    .font(.system(size: 8))
+                content()
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, minHeight: 42)
+            .background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
-        .background(.white.opacity(0.15), in: RoundedRectangle(cornerRadius: 10))
     }
 
-    // MARK: - Mood-reactive background
+    // MARK: - Background
 
-    private var moodReactiveBackground: some View {
-        let baseColor = spaceUIColor
-        let moodColors = moodAccentColors
+    @ViewBuilder
+    private func background(contact: Contact) -> some View {
+        let base = colorFor(contact.spaceColor)
+        let accent = contact.currentMood.map { moodColor($0) } ?? base
 
-        return ZStack {
-            LinearGradient(
-                colors: [
-                    moodColors.0.opacity(0.6),
-                    baseColor.opacity(0.4),
-                    moodColors.1.opacity(0.2),
-                    .black
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+        LinearGradient(
+            colors: [base.opacity(0.75), accent.opacity(0.35), .black],
+            startPoint: gradientShift ? .topLeading : .top,
+            endPoint: gradientShift ? .bottomTrailing : .bottom
+        )
+        .ignoresSafeArea()
+        .animation(
+            .easeInOut(duration: 4).repeatForever(autoreverses: true),
+            value: gradientShift
+        )
+    }
 
-            Circle()
-                .fill(moodColors.0.opacity(0.15))
-                .frame(width: 200, height: 200)
-                .blur(radius: 60)
-                .offset(y: -50)
-                .scaleEffect(breathe ? 1.1 : 0.9)
-                .animation(
-                    .easeInOut(duration: 3).repeatForever(autoreverses: true),
-                    value: breathe
-                )
+    // MARK: - Particles
+
+    private var floatingParticles: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let specs: [(CGFloat, CGFloat, CGFloat, Double, CGFloat, Double)] = [
+                (0.10, 0.15, 2.5, 0.10,  7, 4.0),
+                (0.85, 0.10, 2.0, 0.08, -6, 5.5),
+                (0.20, 0.72, 2.0, 0.10,  8, 3.8),
+                (0.80, 0.60, 2.5, 0.08, -7, 4.8),
+                (0.50, 0.25, 2.0, 0.07,  5, 6.0),
+                (0.70, 0.85, 2.5, 0.09, -8, 5.2),
+            ]
+            ForEach(Array(specs.enumerated()), id: \.offset) { i, s in
+                Circle()
+                    .fill(.white.opacity(s.3))
+                    .frame(width: s.2, height: s.2)
+                    .offset(x: w * s.0, y: (h * s.1) + (particleDrift ? s.4 : -s.4))
+                    .animation(
+                        .easeInOut(duration: s.5).repeatForever(autoreverses: true),
+                        value: particleDrift
+                    )
+            }
         }
         .ignoresSafeArea()
     }
 
-    private var moodAccentColors: (Color, Color) {
-        guard let mood = contact.currentMood else {
-            return (spaceUIColor, spaceUIColor)
+    // MARK: - Helpers
+
+    private func startAnimations() {
+        withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
+            pulseScale = 1.06
         }
-        switch mood {
-        case .happy: return (.yellow, .orange)
-        case .calm: return (.cyan, .blue)
-        case .stressed: return (.red, .orange)
-        case .sad: return (.indigo, .purple)
-        case .energetic: return (.orange, .yellow)
-        case .tired: return (.gray, .blue)
+        gradientShift = true
+        particleDrift = true
+    }
+
+    private func ensureAchievementsExist() {
+        guard let contact else { return }
+        if contactAchievements.isEmpty {
+            AchievementService.createAll(for: contact.name, context: modelContext)
         }
     }
 
-    private var spaceUIColor: Color {
-        switch contact.spaceColor {
-        case .red: .red
-        case .orange: .orange
-        case .yellow: .yellow
-        case .green: .green
-        case .mint: .mint
-        case .teal: .teal
-        case .cyan: .cyan
-        case .blue: .blue
-        case .indigo: .indigo
-        case .purple: .purple
-        case .pink: .pink
+    private func checkAchievements(contact: Contact) {
+        if let unlocked = AchievementService.checkAll(for: contact, context: modelContext) {
+            unlockedAchievement = unlocked
+        }
+    }
+
+    private func moodColor(_ mood: MoodType) -> Color {
+        switch mood {
+        case .happy:     return .yellow
+        case .excited:   return .orange
+        case .loved:     return .pink
+        case .grateful:  return .mint
+        case .calm:      return .cyan
+        case .bored:     return .gray
+        case .anxious:   return .purple
+        case .stressed:  return .red
+        case .sad:       return .indigo
+        case .lonely:    return .blue
+        case .tired:     return Color(white: 0.45)
+        case .angry:     return Color(red: 0.85, green: 0.15, blue: 0.1)
+        case .energetic: return .yellow
         }
     }
 }
 
 #Preview {
-    PersonSpaceView(contact: Contact(name: "Alex", relationship: .partner, emoji: "🦊", spaceColor: .purple))
+    PersonSpaceView(contactName: "Alex")
 }

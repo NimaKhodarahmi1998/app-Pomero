@@ -10,7 +10,7 @@ struct MoodSelectionView: View {
     @State private var selectedIndex = 0.0
     @State private var saved = false
 
-    private let moods = MoodType.allCases
+    private let moods = MoodType.allCases.filter { !$0.isLegacy }
 
     private var currentMood: MoodType {
         let count = moods.count
@@ -20,39 +20,44 @@ struct MoodSelectionView: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 0) {
             Text("How do you feel?")
-                .font(.caption2)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
+                .padding(.top, 10)
 
-            // Big mood display
+            Spacer()
+
             Text(currentMood.emoji)
-                .font(.system(size: 64))
+                .font(.system(size: 44))
                 .id(currentMood)
                 .transition(.scale.combined(with: .opacity))
                 .animation(.spring(duration: 0.3), value: currentMood)
 
+            Spacer().frame(height: 6)
+
             Text(currentMood.label)
-                .font(.headline)
+                .font(.subheadline)
+                .fontWeight(.medium)
                 .foregroundStyle(moodColor)
-                .id(currentMood.label)
                 .animation(.easeInOut, value: currentMood)
 
-            // Dots indicator
-            HStack(spacing: 6) {
-                ForEach(Array(moods.enumerated()), id: \.element.id) { index, mood in
+            Spacer().frame(height: 8)
+
+            HStack(spacing: 5) {
+                ForEach(Array(moods.enumerated()), id: \.element.id) { _, mood in
                     Circle()
-                        .fill(currentMood == mood ? moodColor : .white.opacity(0.3))
-                        .frame(width: currentMood == mood ? 8 : 5, height: currentMood == mood ? 8 : 5)
+                        .fill(currentMood == mood ? moodColor : .secondary.opacity(0.3))
+                        .frame(width: currentMood == mood ? 7 : 4, height: currentMood == mood ? 7 : 4)
                         .animation(.spring(duration: 0.2), value: currentMood)
                 }
             }
-            .padding(.vertical, 4)
 
-            Button("Set Mood") {
-                saveMood()
-            }
-            .tint(moodColor)
+            Spacer()
+
+            Button("Set Mood") { saveMood() }
+                .tint(moodColor)
+                .padding(.bottom, 4)
         }
         .focusable()
         .digitalCrownRotation(
@@ -64,20 +69,25 @@ struct MoodSelectionView: View {
             isContinuous: true
         )
         .overlay {
-            if saved {
-                savedOverlay
-            }
+            if saved { savedOverlay }
         }
     }
 
     private var moodColor: Color {
         switch currentMood {
-        case .happy: .yellow
-        case .calm: .cyan
-        case .stressed: .red
-        case .sad: .indigo
-        case .energetic: .orange
-        case .tired: .gray
+        case .happy:    return .yellow
+        case .excited:  return .orange
+        case .loved:    return .pink
+        case .grateful: return .mint
+        case .calm:     return .cyan
+        case .bored:    return .gray
+        case .anxious:  return .purple
+        case .stressed: return .red
+        case .sad:      return .indigo
+        case .lonely:   return .blue
+        case .tired:    return Color(white: 0.45)
+        case .angry:    return Color(red: 0.85, green: 0.15, blue: 0.1)
+        case .energetic: return .yellow
         }
     }
 
@@ -96,18 +106,19 @@ struct MoodSelectionView: View {
         WKInterfaceDevice.current().play(.success)
 
         saved = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        Task {
+            try? await Task.sleep(for: .seconds(1))
             saved = false
             dismiss()
         }
     }
 
     private var savedOverlay: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             Text(currentMood.emoji)
-                .font(.system(size: 48))
+                .font(.system(size: 44))
             Image(systemName: "checkmark.circle.fill")
-                .font(.title2)
+                .font(.title3)
                 .foregroundStyle(.green)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
