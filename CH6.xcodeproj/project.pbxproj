@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		787E6BDE2F7680FA00079BA5 /* CH6 Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 787E6BDD2F7680FA00079BA5 /* CH6 Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A14E078E2F7D06EA00D6580D /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A14E078D2F7D06EA00D6580D /* FirebaseAuth */; };
+		A14E07902F7D06EA00D6580D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A14E078F2F7D06EA00D6580D /* FirebaseFirestore */; };
+		A14E07922F7D070000D6580D /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A14E07912F7D070000D6580D /* FirebaseAuth */; };
+		A14E07942F7D070000D6580D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A14E07932F7D070000D6580D /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +61,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A14E07922F7D070000D6580D /* FirebaseAuth in Frameworks */,
+				A14E07942F7D070000D6580D /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -64,6 +70,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A14E078E2F7D06EA00D6580D /* FirebaseAuth in Frameworks */,
+				A14E07902F7D06EA00D6580D /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -110,6 +118,8 @@
 			);
 			name = CH6;
 			packageProductDependencies = (
+				A14E07912F7D070000D6580D /* FirebaseAuth */,
+				A14E07932F7D070000D6580D /* FirebaseFirestore */,
 			);
 			productName = CH6;
 			productReference = 787E6BD02F7680F900079BA5 /* CH6.app */;
@@ -132,6 +142,8 @@
 			);
 			name = "CH6 Watch App";
 			packageProductDependencies = (
+				A14E078D2F7D06EA00D6580D /* FirebaseAuth */,
+				A14E078F2F7D06EA00D6580D /* FirebaseFirestore */,
 			);
 			productName = "CH6 Watch App";
 			productReference = 787E6BDD2F7680FA00079BA5 /* CH6 Watch App.app */;
@@ -164,6 +176,9 @@
 			);
 			mainGroup = 787E6BC72F7680F900079BA5;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A14E078C2F7D06EA00D6580D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 787E6BD12F7680F900079BA5 /* Products */;
 			projectDirPath = "";
@@ -342,7 +357,7 @@
 				CODE_SIGN_ENTITLEMENTS = "CH6 Watch App/CH6 Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = HT99YC33BT;
+				DEVELOPMENT_TEAM = ZD48B39XU7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CH6;
@@ -376,7 +391,7 @@
 				CODE_SIGN_ENTITLEMENTS = "CH6 Watch App/CH6 Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = HT99YC33BT;
+				DEVELOPMENT_TEAM = ZD48B39XU7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CH6;
@@ -410,7 +425,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = HT99YC33BT;
+				DEVELOPMENT_TEAM = ZD48B39XU7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CH6;
@@ -445,7 +460,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = HT99YC33BT;
+				DEVELOPMENT_TEAM = ZD48B39XU7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CH6;
@@ -505,6 +520,40 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A14E078C2F7D06EA00D6580D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.11.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A14E078D2F7D06EA00D6580D /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A14E078C2F7D06EA00D6580D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		A14E078F2F7D06EA00D6580D /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A14E078C2F7D06EA00D6580D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		A14E07912F7D070000D6580D /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A14E078C2F7D06EA00D6580D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		A14E07932F7D070000D6580D /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A14E078C2F7D06EA00D6580D /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 787E6BC82F7680F900079BA5 /* Project object */;
 }

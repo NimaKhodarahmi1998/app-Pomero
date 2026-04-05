@@ -1,0 +1,71 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Swift Package Manager
+.build/
+Package.resolved
+.swiftpm/
+
+# Firebase / Google
+GoogleService-Info.plist
+google-services.json
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+
+# Secrets & credentials
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.p8
+*.cer
+*.mobileprovision
+*.provisionprofile
+Secrets.swift
+Config.xcconfig
+*.xcconfig
+
+# API keys config
+ServiceAccountKey.json
+credentials.json
+secrets.json
+
+# CocoaPods (if used later)
+Pods/
+Podfile.lock
+
+# Fastlane (if used later)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# Archives & exports
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcarchive
+
+# Misc
+*.log
+*.tmp
+Thumbs.db
