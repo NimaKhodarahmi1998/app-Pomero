@@ -12,6 +12,7 @@
 		A14E07902F7D06EA00D6580D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A14E078F2F7D06EA00D6580D /* FirebaseFirestore */; };
 		A14E07922F7D070000D6580D /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A14E07912F7D070000D6580D /* FirebaseAuth */; };
 		A14E07942F7D070000D6580D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A14E07932F7D070000D6580D /* FirebaseFirestore */; };
+		787E6BF32F7680FB00079BA5 /* MusicKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 787E6BF12F7680FB00079BA5 /* MusicKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,6 +42,7 @@
 /* Begin PBXFileReference section */
 		787E6BD02F7680F900079BA5 /* CH6.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CH6.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		787E6BDD2F7680FA00079BA5 /* CH6 Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CH6 Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		787E6BF12F7680FB00079BA5 /* MusicKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MusicKit.framework; path = System/Library/Frameworks/MusicKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -72,6 +74,7 @@
 			files = (
 				A14E078E2F7D06EA00D6580D /* FirebaseAuth in Frameworks */,
 				A14E07902F7D06EA00D6580D /* FirebaseFirestore in Frameworks */,
+				787E6BF32F7680FB00079BA5 /* MusicKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,6 +86,7 @@
 			children = (
 				787E6BD22F7680F900079BA5 /* CH6 */,
 				787E6BE12F7680FA00079BA5 /* CH6 Watch App */,
+				787E6BF22F7680FB00079BA5 /* Frameworks */,
 				787E6BD12F7680F900079BA5 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -94,6 +98,14 @@
 				787E6BDD2F7680FA00079BA5 /* CH6 Watch App.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		787E6BF22F7680FB00079BA5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				787E6BF12F7680FB00079BA5 /* MusicKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -361,6 +373,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CH6;
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "CH6 needs access to Apple Music to search for songs to suggest.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "Nima-Khodarahmi.CH6";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -395,6 +408,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = CH6;
+				INFOPLIST_KEY_NSAppleMusicUsageDescription = "CH6 needs access to Apple Music to search for songs to suggest.";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "Nima-Khodarahmi.CH6";
 				LD_RUNPATH_SEARCH_PATHS = (

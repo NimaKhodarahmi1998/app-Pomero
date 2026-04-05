@@ -1,118 +1,176 @@
 import SwiftUI
 import SwiftData
+import WatchKit
 
 struct ChallengeListView: View {
     let contact: Contact
     @Query private var allChallenges: [Challenge]
+    @Query private var allCustom: [CustomChallenge]
     @Environment(\.modelContext) private var modelContext
 
     private var challenges: [Challenge] {
         allChallenges.filter { $0.contactName == contact.name }
     }
-
-    private var dailyChallenges: [Challenge] {
-        challenges.filter { $0.type.period == .daily }
+    private var customChallenges: [CustomChallenge] {
+        allCustom.filter { $0.contactName == contact.name }
     }
 
-    private var weeklyChallenges: [Challenge] {
-        challenges.filter { $0.type.period == .weekly }
-    }
-
-    private var monthlyChallenges: [Challenge] {
-        challenges.filter { $0.type.period == .monthly }
-    }
+    private var dailyChallenges: [Challenge]   { challenges.filter { $0.type.period == .daily } }
+    private var weeklyChallenges: [Challenge]  { challenges.filter { $0.type.period == .weekly } }
+    private var monthlyChallenges: [Challenge] { challenges.filter { $0.type.period == .monthly } }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 14) {
-                Text("Challenges")
-                    .font(.headline)
-
-                if !dailyChallenges.isEmpty {
-                    challengeSection("Daily", icon: "sun.max.fill", challenges: dailyChallenges)
-                }
-
-                if !weeklyChallenges.isEmpty {
-                    challengeSection("Weekly", icon: "calendar", challenges: weeklyChallenges)
-                }
-
-                if !monthlyChallenges.isEmpty {
-                    challengeSection("Monthly", icon: "moon.stars.fill", challenges: monthlyChallenges)
-                }
-
-                if challenges.isEmpty {
-                    Text("No challenges yet")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+        List {
+            if !dailyChallenges.isEmpty {
+                Section("Daily") {
+                    ForEach(dailyChallenges) { ChallengeRow(challenge: $0) }
                 }
             }
-            .padding(.horizontal)
+            if !weeklyChallenges.isEmpty {
+                Section("Weekly") {
+                    ForEach(weeklyChallenges) { ChallengeRow(challenge: $0) }
+                }
+            }
+            if !monthlyChallenges.isEmpty {
+                Section("Monthly") {
+                    ForEach(monthlyChallenges) { ChallengeRow(challenge: $0) }
+                }
+            }
+
+            Section("Custom") {
+                ForEach(customChallenges) { custom in
+                    CustomChallengeRow(challenge: custom) {
+                        toggleCustom(custom)
+                    }
+                }
+                .onDelete { indexSet in
+                    indexSet.map { customChallenges[$0] }.forEach { modelContext.delete($0) }
+                }
+
+                NavigationLink {
+                    AddCustomChallengeView(contactName: contact.name)
+                } label: {
+                    Label("Add Challenge", systemImage: "plus.circle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.cyan)
+                }
+            }
+
+            if challenges.isEmpty && customChallenges.isEmpty {
+                Text("No challenges yet")
+                    .foregroundStyle(.secondary)
+            }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.black)
+        .navigationTitle("Challenges")
         .onAppear {
-            ChallengeService.resetDailyChallenges(for: contact.name, context: modelContext)
+            ChallengeService.resetChallengesIfNeeded(for: contact.name, context: modelContext)
         }
     }
 
-    @ViewBuilder
-    private func challengeSection(_ title: String, icon: String, challenges: [Challenge]) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Text(title)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-
-            ForEach(challenges) { challenge in
-                ChallengeRow(challenge: challenge)
-            }
-        }
+    private func toggleCustom(_ challenge: CustomChallenge) {
+        challenge.isCompleted.toggle()
+        challenge.completedAt = challenge.isCompleted ? .now : nil
+        WKInterfaceDevice.current().play(.click)
     }
 }
+
+// MARK: - Custom challenge row
+
+struct CustomChallengeRow: View {
+    let challenge: CustomChallenge
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 10) {
+                Image(systemName: challenge.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 20))
+                    .foregroundStyle(challenge.isCompleted ? .green : .secondary)
+
+                Text(challenge.title)
+                    .font(.footnote)
+                    .foregroundStyle(challenge.isCompleted ? .secondary : .primary)
+                    .strikethrough(challenge.isCompleted)
+                    .lineLimit(2)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Add custom challenge
+
+struct AddCustomChallengeView: View {
+    let contactName: String
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var title = ""
+
+    var body: some View {
+        VStack(spacing: 12) {
+            TextField("Challenge name…", text: $title)
+                .font(.footnote)
+                .submitLabel(.done)
+                .onSubmit { save() }
+
+            Button("Add") { save() }
+                .buttonStyle(.borderedProminent)
+                .tint(.cyan)
+                .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+        }
+        .padding()
+        .navigationTitle("New Challenge")
+    }
+
+    private func save() {
+        let trimmed = title.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        modelContext.insert(CustomChallenge(title: trimmed, contactName: contactName))
+        dismiss()
+    }
+}
+
+// MARK: - Standard challenge row
 
 struct ChallengeRow: View {
     let challenge: Challenge
 
-    var body: some View {
-        HStack(spacing: 8) {
-            // Progress ring
-            ZStack {
-                Circle()
-                    .stroke(.white.opacity(0.1), lineWidth: 3)
-                    .frame(width: 28, height: 28)
-                Circle()
-                    .trim(from: 0, to: challenge.progressFraction)
-                    .stroke(
-                        challenge.isCompleted ? Color.green : Color.orange,
-                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
-                    )
-                    .frame(width: 28, height: 28)
-                    .rotationEffect(.degrees(-90))
+    private var scale: CGFloat {
+        let b = WKInterfaceDevice.current().screenBounds
+        guard b.width > 0, b.height > 0 else { return 1.0 }
+        return min(b.width / 198.0, b.height / 242.0)
+    }
 
+    var body: some View {
+        HStack(spacing: 10) {
+            Gauge(value: challenge.progressFraction) {
+                EmptyView()
+            } currentValueLabel: {
                 if challenge.isCompleted {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.green)
+                    Image(systemName: "checkmark").foregroundStyle(.green)
                 } else {
                     Text(challenge.type.emoji)
-                        .font(.system(size: 10))
                 }
             }
+            .gaugeStyle(.accessoryCircularCapacity)
+            .tint(challenge.isCompleted ? .green : .orange)
+            .frame(width: 30, height: 30)
+            .scaleEffect(scale)
+            .frame(width: 30 * scale, height: 30 * scale)
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(challenge.type.title)
-                    .font(.caption2)
-                    .foregroundStyle(challenge.isCompleted ? .green : .white)
+                    .font(.footnote)
+                    .foregroundStyle(challenge.isCompleted ? .green : .primary)
                 Text("\(challenge.progress)/\(challenge.type.target)")
-                    .font(.system(size: 9))
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
             }
-
-            Spacer()
         }
-        .padding(.vertical, 2)
     }
 }
 

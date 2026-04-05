@@ -4,173 +4,310 @@ import WatchKit
 
 struct OnboardingView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var step = 0
+    @State private var path: [Int] = []
     @State private var name = ""
     @State private var selectedEmoji = "❤️"
     @State private var selectedColor: SpaceColor = .purple
     @State private var selectedRelationship: RelationshipType = .partner
     var onComplete: () -> Void
 
+    private var scale: CGFloat {
+        let b = WKInterfaceDevice.current().screenBounds
+        guard b.width > 0, b.height > 0 else { return 1.0 }
+        return min(b.width / 198.0, b.height / 242.0)
+    }
+
     private let emojiOptions = [
-        "❤️", "🧡", "💛", "💚", "💙", "💜",
-        "🦊", "🐻", "🐰", "🐱", "🐶", "🦋",
-        "🌸", "🌻", "🔥", "⭐", "🌙", "☀️"
+        "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "💕", "💞", "💗", "❤️‍🔥",
+        "🦊", "🐻", "🐰", "🐱", "🐶", "🦋", "🐼", "🐨", "🦁", "🐯", "🦄", "🐸",
+        "🐧", "🦉", "🐺", "🦚", "🐬",
+        "🌸", "🌻", "🌹", "🌺", "🍀", "🌿", "🌴", "🌵", "🍁", "🌾",
+        "⭐", "🌙", "☀️", "🌈", "⚡", "🌊", "🔥", "❄️", "🌼", "☁️",
+        "✨", "💎", "🎯", "🎸", "🎨", "🍓", "🫐", "🎀", "🪐", "🎵"
     ]
 
     var body: some View {
-        TabView(selection: $step) {
-            // Step 0: Welcome
+        NavigationStack(path: $path) {
             welcomeStep
-                .tag(0)
-
-            // Step 1: Name
-            nameStep
-                .tag(1)
-
-            // Step 2: Relationship
-            relationshipStep
-                .tag(2)
-
-            // Step 3: Emoji
-            emojiStep
-                .tag(3)
-
-            // Step 4: Color
-            colorStep
-                .tag(4)
+                .navigationDestination(for: Int.self) { step in
+                    switch step {
+                    case 1: nameStep
+                    case 2: relationshipStep
+                    case 3: emojiStep
+                    case 4: colorStep
+                    default: EmptyView()
+                    }
+                }
         }
-        .tabViewStyle(.verticalPage)
     }
 
-    // MARK: - Steps
+    // MARK: - Welcome
 
     private var welcomeStep: some View {
-        VStack(spacing: 12) {
-            Text("✨")
-                .font(.system(size: 44))
-            Text("Welcome to CH6")
-                .font(.headline)
-            Text("Who matters most to you?")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            Text("Swipe down to start")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-        }
-    }
+        ZStack {
+            RadialGradient(
+                colors: [Color.purple.opacity(0.4), Color.black.opacity(0.9)],
+                center: .center, startRadius: 10, endRadius: 130
+            )
+            .ignoresSafeArea()
 
-    private var nameStep: some View {
-        VStack(spacing: 12) {
-            Text("Their name")
-                .font(.headline)
-            TextField("Name", text: $name)
-        }
-        .padding(.horizontal)
-    }
+            VStack(spacing: 0) {
+                Spacer()
 
-    private var relationshipStep: some View {
-        VStack(spacing: 8) {
-            Text("They are your...")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                Text("✨")
+                    .font(.system(size: 40 * scale))
 
-            ForEach(RelationshipType.allCases) { rel in
-                Button {
-                    selectedRelationship = rel
-                    WKInterfaceDevice.current().play(.click)
-                } label: {
-                    HStack {
-                        Image(systemName: rel.icon)
-                        Text(rel.label)
-                            .font(.caption)
-                        Spacer()
-                        if selectedRelationship == rel {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(.green)
-                        }
-                    }
-                    .padding(.vertical, 4)
+                Spacer().frame(height: 8 * scale)
+
+                Text("Connesso")
+                    .font(.system(size: 16 * scale, weight: .bold))
+
+                Spacer().frame(height: 4 * scale)
+
+                Text("Who matters most?")
+                    .font(.system(size: 11 * scale))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+
+                Spacer()
+
+                Button { advance() } label: {
+                    Text("Add Person")
+                        .font(.system(size: 13 * scale, weight: .semibold))
+                        .foregroundStyle(.purple)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8 * scale)
+                        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 12 * scale))
                 }
                 .buttonStyle(.plain)
+                .padding(.horizontal, 10 * scale)
+                .padding(.bottom, 6 * scale)
             }
         }
-        .padding(.horizontal)
     }
 
-    private var emojiStep: some View {
-        let columns = [
-            GridItem(.flexible()), GridItem(.flexible()),
-            GridItem(.flexible()), GridItem(.flexible()),
-            GridItem(.flexible()), GridItem(.flexible())
-        ]
-        return VStack(spacing: 8) {
-            Text("Pick their emoji")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+    // MARK: - Name
 
-            LazyVGrid(columns: columns, spacing: 6) {
-                ForEach(emojiOptions, id: \.self) { emoji in
-                    Button {
-                        selectedEmoji = emoji
-                        WKInterfaceDevice.current().play(.click)
-                    } label: {
-                        Text(emoji)
-                            .font(.system(size: 22))
-                            .padding(4)
-                            .background(
-                                Circle().fill(selectedEmoji == emoji ? .white.opacity(0.2) : .clear)
-                            )
-                    }
-                    .buttonStyle(.plain)
+    private var nameStep: some View {
+        ZStack {
+            RadialGradient(
+                colors: [Color.blue.opacity(0.35), Color.black.opacity(0.9)],
+                center: .center, startRadius: 10, endRadius: 130
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Text("Their name")
+                    .font(.system(size: 11 * scale, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8 * scale)
+
+                Spacer()
+
+                TextField("Name or nickname", text: $name)
+                    .font(.system(size: 14 * scale, weight: .medium))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 10 * scale)
+
+                Spacer()
+
+                Button { advance() } label: {
+                    Text("Next")
+                        .font(.system(size: 13 * scale, weight: .semibold))
+                        .foregroundStyle(Color.blue)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8 * scale)
+                        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 12 * scale))
                 }
+                .buttonStyle(.plain)
+                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                .padding(.horizontal, 10 * scale)
+                .padding(.bottom, 6 * scale)
             }
         }
-        .padding(.horizontal)
     }
 
-    private var colorStep: some View {
-        let columns = [
-            GridItem(.flexible()), GridItem(.flexible()),
-            GridItem(.flexible()), GridItem(.flexible())
-        ]
-        return VStack(spacing: 10) {
-            Text("Pick their color")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+    // MARK: - Relationship
 
-            LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(SpaceColor.allCases) { color in
-                    Button {
-                        selectedColor = color
-                        WKInterfaceDevice.current().play(.click)
-                    } label: {
-                        Circle()
-                            .fill(colorValue(color))
-                            .frame(width: 28, height: 28)
-                            .overlay {
-                                if selectedColor == color {
+    private var relationshipStep: some View {
+        ZStack {
+            RadialGradient(
+                colors: [Color.indigo.opacity(0.35), Color.black.opacity(0.9)],
+                center: .center, startRadius: 10, endRadius: 130
+            )
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 7 * scale) {
+                    Text("Who are they?")
+                        .font(.system(size: 11 * scale, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 8 * scale)
+
+                    ForEach(RelationshipType.allCases) { rel in
+                        Button {
+                            selectedRelationship = rel
+                            WKInterfaceDevice.current().play(.click)
+                            advance()
+                        } label: {
+                            HStack(spacing: 10 * scale) {
+                                Image(systemName: rel.icon)
+                                    .font(.system(size: 13 * scale, weight: .medium))
+                                    .foregroundStyle(.indigo)
+                                    .frame(width: 20 * scale)
+                                Text(rel.label)
+                                    .font(.footnote)
+                                Spacer()
+                                if selectedRelationship == rel {
                                     Image(systemName: "checkmark")
-                                        .font(.caption2)
-                                        .fontWeight(.bold)
-                                        .foregroundStyle(.white)
+                                        .font(.caption.weight(.bold))
+                                        .foregroundStyle(.tint)
                                 }
                             }
+                            .padding(.horizontal, 12 * scale)
+                            .padding(.vertical, 9 * scale)
+                            .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 13 * scale))
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
+
+                    Spacer().frame(height: 8 * scale)
+                }
+                .padding(.horizontal, 10 * scale)
+            }
+            .scrollIndicators(.hidden)
+        }
+    }
+
+    // MARK: - Emoji
+
+    private var emojiStep: some View {
+        ZStack {
+            RadialGradient(
+                colors: [Color.pink.opacity(0.35), Color.black.opacity(0.9)],
+                center: .center, startRadius: 10, endRadius: 130
+            )
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    Text("Pick an emoji")
+                        .font(.system(size: 11 * scale, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 8 * scale)
+                        .padding(.bottom, 8 * scale)
+
+                    let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
+                    LazyVGrid(columns: columns, spacing: 8) {
+                        ForEach(emojiOptions, id: \.self) { emoji in
+                            Button {
+                                selectedEmoji = emoji
+                                WKInterfaceDevice.current().play(.click)
+                            } label: {
+                                Text(emoji)
+                                    .font(.system(size: 22 * scale))
+                                    .frame(maxWidth: .infinity)
+                                    .aspectRatio(1, contentMode: .fit)
+                                    .glassEffect(
+                                        selectedEmoji == emoji ? .regular.interactive() : .regular,
+                                        in: RoundedRectangle(cornerRadius: 10 * scale)
+                                    )
+                                    .overlay {
+                                        if selectedEmoji == emoji {
+                                            RoundedRectangle(cornerRadius: 10 * scale)
+                                                .strokeBorder(.white.opacity(0.9), lineWidth: 1.5)
+                                        }
+                                    }
+                            }
+                            .buttonStyle(.plain)
+                            .scrollTransition(.animated.threshold(.visible(0.3))) { content, phase in
+                                content
+                                    .scaleEffect(1 - abs(phase.value) * 0.2)
+                                    .opacity(1 - abs(phase.value) * 0.4)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 8 * scale)
+                    .padding(.bottom, 8 * scale)
                 }
             }
-
-            Button("Done") {
-                createContact()
-            }
-            .disabled(name.isEmpty)
-            .tint(.green)
+            .focusable()
+            .scrollIndicators(.hidden)
         }
-        .padding(.horizontal)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button { advance() } label: {
+                    Image(systemName: "checkmark").fontWeight(.semibold)
+                }
+            }
+        }
+    }
+
+    // MARK: - Color
+
+    private var colorStep: some View {
+        ZStack {
+            RadialGradient(
+                colors: [colorFor(selectedColor).opacity(0.4), Color.black.opacity(0.9)],
+                center: .center, startRadius: 10, endRadius: 130
+            )
+            .ignoresSafeArea()
+            .animation(.easeInOut(duration: 0.4), value: selectedColor)
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    Text("Pick a colour")
+                        .font(.system(size: 11 * scale, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 8 * scale)
+                        .padding(.bottom, 8 * scale)
+
+                    let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
+                    LazyVGrid(columns: columns, spacing: 10) {
+                        ForEach(SpaceColor.allCases) { color in
+                            Button {
+                                selectedColor = color
+                                WKInterfaceDevice.current().play(.click)
+                            } label: {
+                                Circle()
+                                    .fill(colorFor(color))
+                                    .aspectRatio(1, contentMode: .fit)
+                                    .shadow(color: colorFor(color).opacity(0.6), radius: 5)
+                                    .overlay {
+                                        if selectedColor == color {
+                                            Circle().strokeBorder(.white, lineWidth: 2.5)
+                                        }
+                                    }
+                            }
+                            .buttonStyle(.plain)
+                            .scrollTransition(.animated.threshold(.visible(0.3))) { content, phase in
+                                content
+                                    .scaleEffect(1 - abs(phase.value) * 0.2)
+                                    .opacity(1 - abs(phase.value) * 0.4)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 8 * scale)
+                    .padding(.bottom, 8 * scale)
+                }
+            }
+            .focusable()
+            .scrollIndicators(.hidden)
+        }
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button { createContact() } label: {
+                    Image(systemName: "checkmark").fontWeight(.semibold)
+                }
+            }
+        }
     }
 
     // MARK: - Actions
+
+    private func advance() {
+        path.append(path.count + 1)
+    }
 
     private func createContact() {
         let contact = Contact(
@@ -181,34 +318,18 @@ struct OnboardingView: View {
         )
         modelContext.insert(contact)
 
-        // Create initial challenges for this contact
-        let dailyTypes: [ChallengeType] = [.checkInMood, .sendNudge]
-        let weeklyTypes: [ChallengeType] = [.streakWeek, .fiveNudges]
-        let monthlyTypes: [ChallengeType] = [.thirtyDayStreak]
-
-        for type in dailyTypes + weeklyTypes + monthlyTypes {
-            let challenge = Challenge(type: type, contactName: name)
-            modelContext.insert(challenge)
+        let challengeTypes: [ChallengeType] = [
+            .checkInMood, .sendNudge,
+            .streakWeek, .fiveNudges, .allMoods,
+            .thirtyDayStreak, .hundredNudges, .moodJourney
+        ]
+        for type in challengeTypes {
+            modelContext.insert(Challenge(type: type, contactName: name))
         }
 
+        AchievementService.createAll(for: name, context: modelContext)
         WKInterfaceDevice.current().play(.success)
         onComplete()
-    }
-
-    private func colorValue(_ spaceColor: SpaceColor) -> Color {
-        switch spaceColor {
-        case .red: .red
-        case .orange: .orange
-        case .yellow: .yellow
-        case .green: .green
-        case .mint: .mint
-        case .teal: .teal
-        case .cyan: .cyan
-        case .blue: .blue
-        case .indigo: .indigo
-        case .purple: .purple
-        case .pink: .pink
-        }
     }
 }
 

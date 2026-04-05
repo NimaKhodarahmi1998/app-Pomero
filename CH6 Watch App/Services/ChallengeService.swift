@@ -48,15 +48,25 @@ enum ChallengeService {
         }
     }
 
-    static func resetDailyChallenges(for contactName: String, context: ModelContext) {
+    static func resetChallengesIfNeeded(for contactName: String, context: ModelContext) {
         let challenges = fetchAllChallenges(for: contactName, context: context)
-
         let calendar = Calendar.current
-        for challenge in challenges where challenge.type.period == .daily {
-            if !calendar.isDateInToday(challenge.startDate) {
+        let now = Date.now
+
+        for challenge in challenges {
+            let shouldReset: Bool
+            switch challenge.type.period {
+            case .daily:
+                shouldReset = !calendar.isDateInToday(challenge.startDate)
+            case .weekly:
+                shouldReset = !calendar.isDate(challenge.startDate, equalTo: now, toGranularity: .weekOfYear)
+            case .monthly:
+                shouldReset = !calendar.isDate(challenge.startDate, equalTo: now, toGranularity: .month)
+            }
+            if shouldReset {
                 challenge.progress = 0
                 challenge.isCompleted = false
-                challenge.startDate = .now
+                challenge.startDate = now
             }
         }
     }
