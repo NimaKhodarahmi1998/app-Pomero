@@ -58,6 +58,7 @@ struct OnboardingView: View {
             }
             .padding()
         }
+        .focusable()
     }
 
     private var nameStep: some View {
@@ -72,7 +73,7 @@ struct OnboardingView: View {
             }
             .padding(.horizontal)
         }
-        //.navigationTitle("Name")
+        .focusable()
     }
 
     private var relationshipStep: some View {
@@ -106,12 +107,10 @@ struct OnboardingView: View {
                         selectedEmoji = emoji
                         WKInterfaceDevice.current().play(.click)
                     } label: {
-                        Circle()
-                            .fill(Color.white.opacity(0.13))
+                        Text(emoji)
+                            .font(.title2)
+                            .frame(maxWidth: .infinity)
                             .aspectRatio(1, contentMode: .fit)
-                            .overlay {
-                                Text(emoji).font(.title2)
-                            }
                             .overlay {
                                 if selectedEmoji == emoji {
                                     Circle().strokeBorder(.white, lineWidth: 2.5)
@@ -119,6 +118,7 @@ struct OnboardingView: View {
                             }
                     }
                     .buttonStyle(.plain)
+                    .glassEffect(.regular.interactive(), in: Circle())
                     .scrollTransition(.animated.threshold(.visible(0.3))) { content, phase in
                         content
                             .scaleEffect(1 - abs(phase.value) * 0.3)
@@ -130,6 +130,7 @@ struct OnboardingView: View {
             .padding(.top, 4)
             .padding(.bottom, 8)
         }
+        .focusable()
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button { advance() } label: {
@@ -169,6 +170,7 @@ struct OnboardingView: View {
             .padding(.top, 4)
             .padding(.bottom, 8)
         }
+        .focusable()
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button { createContact() } label: {

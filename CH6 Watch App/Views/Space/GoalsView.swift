@@ -7,34 +7,31 @@ struct GoalsView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    NavigationLink {
-                        ChallengeListView(contact: contact)
-                    } label: {
-                        Label {
-                            Text("Challenges")
-                        } icon: {
-                            Image(systemName: "target")
-                                .foregroundStyle(.orange)
-                        }
+                NavigationLink {
+                    ChallengeListView(contact: contact)
+                } label: {
+                    Label {
+                        Text("Challenges")
+                    } icon: {
+                        Image(systemName: "target")
+                            .foregroundStyle(.orange)
                     }
+                }
 
-                    NavigationLink {
-                        AchievementListView(contact: contact)
-                    } label: {
-                        Label {
-                            Text("Trophies")
-                        } icon: {
-                            Image(systemName: "trophy.fill")
-                                .foregroundStyle(.yellow)
-                        }
+                NavigationLink {
+                    AchievementListView(contact: contact)
+                } label: {
+                    Label {
+                        Text("Trophies")
+                    } icon: {
+                        Image(systemName: "trophy.fill")
+                            .foregroundStyle(.yellow)
                     }
-                } header: {
-                    Text("Goals")
-                        .font(.footnote)
-                        .textCase(nil)
                 }
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(Color.black)
             .navigationTitle("Goals")
         }
     }

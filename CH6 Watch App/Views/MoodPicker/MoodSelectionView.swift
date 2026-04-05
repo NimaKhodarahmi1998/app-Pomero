@@ -114,17 +114,23 @@ struct MoodSelectionView: View {
     }
 
     private var savedOverlay: some View {
-        VStack(spacing: 8) {
-            Text(currentMood.emoji)
-                .font(.system(size: 44))
-            Image(systemName: "checkmark.circle.fill")
-                .font(.title3)
-                .foregroundStyle(.green)
+        ZStack {
+            Color.black.opacity(0.4)
+
+            VStack(spacing: 8) {
+                Text(currentMood.emoji)
+                    .font(.system(size: 40))
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(.green)
+            }
+            .padding(20)
+            .glassEffect(in: RoundedRectangle(cornerRadius: 20))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.ultraThinMaterial)
+        .ignoresSafeArea()
         .transition(.opacity)
-        .animation(.easeInOut, value: saved)
+        .animation(.easeInOut(duration: 0.2), value: saved)
     }
 }
 

@@ -36,6 +36,9 @@ struct AchievementListView: View {
                 }
             }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.black)
         .navigationTitle("Trophies")
     }
 

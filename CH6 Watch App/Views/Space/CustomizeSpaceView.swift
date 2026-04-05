@@ -96,10 +96,10 @@ private struct EmojiPickerView: View {
                         contact.emoji = emoji
                         WKInterfaceDevice.current().play(.click)
                     } label: {
-                        Circle()
-                            .fill(Color.white.opacity(0.13))
+                        Text(emoji)
+                            .font(.title2)
+                            .frame(maxWidth: .infinity)
                             .aspectRatio(1, contentMode: .fit)
-                            .overlay { Text(emoji).font(.title2) }
                             .overlay {
                                 if contact.emoji == emoji {
                                     Circle().strokeBorder(.white, lineWidth: 2.5)
@@ -107,6 +107,7 @@ private struct EmojiPickerView: View {
                             }
                     }
                     .buttonStyle(.plain)
+                    .glassEffect(.regular.interactive(), in: Circle())
                     .scrollTransition(.animated.threshold(.visible(0.3))) { content, phase in
                         content
                             .scaleEffect(1 - abs(phase.value) * 0.3)
@@ -117,6 +118,7 @@ private struct EmojiPickerView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
         }
+        .focusable()
         .navigationTitle("Emoji")
     }
 }
@@ -155,6 +157,7 @@ private struct ColorPickerView: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
         }
+        .focusable()
         .navigationTitle("Background")
     }
 }

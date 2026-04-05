@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import WatchKit
 
 struct ChallengeListView: View {
     let contact: Contact
@@ -10,49 +11,35 @@ struct ChallengeListView: View {
         allChallenges.filter { $0.contactName == contact.name }
     }
 
-    private var dailyChallenges: [Challenge] {
-        challenges.filter { $0.type.period == .daily }
-    }
-
-    private var weeklyChallenges: [Challenge] {
-        challenges.filter { $0.type.period == .weekly }
-    }
-
-    private var monthlyChallenges: [Challenge] {
-        challenges.filter { $0.type.period == .monthly }
-    }
+    private var dailyChallenges: [Challenge]   { challenges.filter { $0.type.period == .daily } }
+    private var weeklyChallenges: [Challenge]  { challenges.filter { $0.type.period == .weekly } }
+    private var monthlyChallenges: [Challenge] { challenges.filter { $0.type.period == .monthly } }
 
     var body: some View {
         List {
             if !dailyChallenges.isEmpty {
                 Section("Daily") {
-                    ForEach(dailyChallenges) { challenge in
-                        ChallengeRow(challenge: challenge)
-                    }
+                    ForEach(dailyChallenges)   { ChallengeRow(challenge: $0) }
                 }
             }
-
             if !weeklyChallenges.isEmpty {
                 Section("Weekly") {
-                    ForEach(weeklyChallenges) { challenge in
-                        ChallengeRow(challenge: challenge)
-                    }
+                    ForEach(weeklyChallenges)  { ChallengeRow(challenge: $0) }
                 }
             }
-
             if !monthlyChallenges.isEmpty {
                 Section("Monthly") {
-                    ForEach(monthlyChallenges) { challenge in
-                        ChallengeRow(challenge: challenge)
-                    }
+                    ForEach(monthlyChallenges) { ChallengeRow(challenge: $0) }
                 }
             }
-
             if challenges.isEmpty {
                 Text("No challenges yet")
                     .foregroundStyle(.secondary)
             }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Color.black)
         .navigationTitle("Challenges")
         .onAppear {
             ChallengeService.resetChallengesIfNeeded(for: contact.name, context: modelContext)
@@ -63,14 +50,19 @@ struct ChallengeListView: View {
 struct ChallengeRow: View {
     let challenge: Challenge
 
+    private var scale: CGFloat {
+        let b = WKInterfaceDevice.current().screenBounds
+        guard b.width > 0, b.height > 0 else { return 1.0 }
+        return min(b.width / 198.0, b.height / 242.0)
+    }
+
     var body: some View {
         HStack(spacing: 10) {
             Gauge(value: challenge.progressFraction) {
                 EmptyView()
             } currentValueLabel: {
                 if challenge.isCompleted {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(.green)
+                    Image(systemName: "checkmark").foregroundStyle(.green)
                 } else {
                     Text(challenge.type.emoji)
                 }
@@ -78,6 +70,8 @@ struct ChallengeRow: View {
             .gaugeStyle(.accessoryCircularCapacity)
             .tint(challenge.isCompleted ? .green : .orange)
             .frame(width: 30, height: 30)
+            .scaleEffect(scale)
+            .frame(width: 30 * scale, height: 30 * scale)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(challenge.type.title)
