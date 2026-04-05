@@ -50,7 +50,9 @@ enum AchievementService {
 
         // Mood
         case .firstFeeling:  return contact.totalMoodsSet >= 1
-        case .fullSpectrum:  return contact.uniqueMoodsUsed.count >= 6
+        case .fullSpectrum:
+            let activeMoodCount = MoodType.allCases.filter { !$0.isLegacy }.count
+            return contact.uniqueMoodsUsed.count >= activeMoodCount
         case .openBook:      return contact.totalMoodsSet >= 50
 
         // Time
@@ -62,6 +64,18 @@ enum AchievementService {
         case .anniversary:
             guard let first = contact.lastInteractionDate else { return false }
             return (Calendar.current.dateComponents([.day], from: first, to: .now).day ?? 0) >= 365
+
+        // Music
+        case .firstSong:
+            return songSuggestions(for: contact, context: context).count >= 1
+        case .djFriend:
+            return songSuggestions(for: contact, context: context).count >= 10
+
+        // Custom Challenges
+        case .challengeCreator:
+            return customChallenges(for: contact, context: context).filter { $0.isCompleted }.count >= 1
+        case .customChampion:
+            return customChallenges(for: contact, context: context).filter { $0.isCompleted }.count >= 5
 
         // Secret — check against actual entry timestamps
         case .nightOwl:
@@ -97,6 +111,16 @@ enum AchievementService {
 
     private static func nudgeEntries(for contact: Contact, context: ModelContext) -> [NudgeEntry] {
         guard let all = try? context.fetch(FetchDescriptor<NudgeEntry>()) else { return [] }
+        return all.filter { $0.contactName == contact.name }
+    }
+
+    private static func songSuggestions(for contact: Contact, context: ModelContext) -> [SongSuggestion] {
+        guard let all = try? context.fetch(FetchDescriptor<SongSuggestion>()) else { return [] }
+        return all.filter { $0.contactName == contact.name }
+    }
+
+    private static func customChallenges(for contact: Contact, context: ModelContext) -> [CustomChallenge] {
+        guard let all = try? context.fetch(FetchDescriptor<CustomChallenge>()) else { return [] }
         return all.filter { $0.contactName == contact.name }
     }
 }

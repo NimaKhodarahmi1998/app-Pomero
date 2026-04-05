@@ -5,10 +5,14 @@ import WatchKit
 struct ChallengeListView: View {
     let contact: Contact
     @Query private var allChallenges: [Challenge]
+    @Query private var allCustom: [CustomChallenge]
     @Environment(\.modelContext) private var modelContext
 
     private var challenges: [Challenge] {
         allChallenges.filter { $0.contactName == contact.name }
+    }
+    private var customChallenges: [CustomChallenge] {
+        allCustom.filter { $0.contactName == contact.name }
     }
 
     private var dailyChallenges: [Challenge]   { challenges.filter { $0.type.period == .daily } }
@@ -19,12 +23,12 @@ struct ChallengeListView: View {
         List {
             if !dailyChallenges.isEmpty {
                 Section("Daily") {
-                    ForEach(dailyChallenges)   { ChallengeRow(challenge: $0) }
+                    ForEach(dailyChallenges) { ChallengeRow(challenge: $0) }
                 }
             }
             if !weeklyChallenges.isEmpty {
                 Section("Weekly") {
-                    ForEach(weeklyChallenges)  { ChallengeRow(challenge: $0) }
+                    ForEach(weeklyChallenges) { ChallengeRow(challenge: $0) }
                 }
             }
             if !monthlyChallenges.isEmpty {
@@ -32,7 +36,27 @@ struct ChallengeListView: View {
                     ForEach(monthlyChallenges) { ChallengeRow(challenge: $0) }
                 }
             }
-            if challenges.isEmpty {
+
+            Section("Custom") {
+                ForEach(customChallenges) { custom in
+                    CustomChallengeRow(challenge: custom) {
+                        toggleCustom(custom)
+                    }
+                }
+                .onDelete { indexSet in
+                    indexSet.map { customChallenges[$0] }.forEach { modelContext.delete($0) }
+                }
+
+                NavigationLink {
+                    AddCustomChallengeView(contactName: contact.name)
+                } label: {
+                    Label("Add Challenge", systemImage: "plus.circle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.cyan)
+                }
+            }
+
+            if challenges.isEmpty && customChallenges.isEmpty {
                 Text("No challenges yet")
                     .foregroundStyle(.secondary)
             }
@@ -45,7 +69,72 @@ struct ChallengeListView: View {
             ChallengeService.resetChallengesIfNeeded(for: contact.name, context: modelContext)
         }
     }
+
+    private func toggleCustom(_ challenge: CustomChallenge) {
+        challenge.isCompleted.toggle()
+        challenge.completedAt = challenge.isCompleted ? .now : nil
+        WKInterfaceDevice.current().play(.click)
+    }
 }
+
+// MARK: - Custom challenge row
+
+struct CustomChallengeRow: View {
+    let challenge: CustomChallenge
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 10) {
+                Image(systemName: challenge.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 20))
+                    .foregroundStyle(challenge.isCompleted ? .green : .secondary)
+
+                Text(challenge.title)
+                    .font(.footnote)
+                    .foregroundStyle(challenge.isCompleted ? .secondary : .primary)
+                    .strikethrough(challenge.isCompleted)
+                    .lineLimit(2)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Add custom challenge
+
+struct AddCustomChallengeView: View {
+    let contactName: String
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var title = ""
+
+    var body: some View {
+        VStack(spacing: 12) {
+            TextField("Challenge name…", text: $title)
+                .font(.footnote)
+                .submitLabel(.done)
+                .onSubmit { save() }
+
+            Button("Add") { save() }
+                .buttonStyle(.borderedProminent)
+                .tint(.cyan)
+                .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
+        }
+        .padding()
+        .navigationTitle("New Challenge")
+    }
+
+    private func save() {
+        let trimmed = title.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        modelContext.insert(CustomChallenge(title: trimmed, contactName: contactName))
+        dismiss()
+    }
+}
+
+// MARK: - Standard challenge row
 
 struct ChallengeRow: View {
     let challenge: Challenge

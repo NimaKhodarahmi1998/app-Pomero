@@ -12,6 +12,7 @@ struct PersonSpaceView: View {
 
     @State private var showMoodPicker = false
     @State private var showNudgePicker = false
+    @State private var showMusicPicker = false
     @State private var showCustomize = false
     @State private var showGoals = false
     @State private var unlockedAchievement: AchievementType?
@@ -82,71 +83,79 @@ struct PersonSpaceView: View {
                 floatingParticles
 
                 VStack(spacing: 0) {
-                    Spacer(minLength: 0)
+                    Spacer(minLength: 16 * scale)
 
-                    // Rings with stat legend left, customize button right
-                    HStack(alignment: .center, spacing: 8 * scale) {
-                        ringLegend(contact: contact)
-                            .frame(width: 36 * scale, alignment: .trailing)
+                    // Rings left, name + music right
+                    HStack(alignment: .center, spacing: 10 * scale) {
                         activityRings(contact: contact)
-                        iconButton(action: { showCustomize = true }) {
-                            Image(systemName: "paintbrush.fill")
-                                .font(.system(size: 13 * scale, weight: .medium))
-                                .foregroundStyle(.secondary)
+
+                        VStack(alignment: .leading, spacing: 3 * scale) {
+                            Text(contact.displayName)
+                                .font(.system(size: 15 * scale, weight: .semibold))
+                                .lineLimit(1)
+
+                            HStack(spacing: 4) {
+                                Text(contact.relationship.label)
+                                    .foregroundStyle(.secondary)
+                                if let date = contact.lastInteractionDate {
+                                    Text("·").foregroundStyle(.tertiary)
+                                    Text(date, style: .relative)
+                                        .foregroundStyle(.tertiary)
+                                } else {
+                                    Text("·").foregroundStyle(.tertiary)
+                                    Text("say hi first 👋")
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                            .font(.system(size: 10 * scale))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+
+                            Spacer().frame(height: 2 * scale)
+
+                            Button { showMusicPicker = true } label: {
+                                HStack(spacing: 5) {
+                                    Image(systemName: "music.note")
+                                        .font(.system(size: 12 * scale, weight: .semibold))
+                                    Text("Music")
+                                        .font(.system(size: 12 * scale, weight: .semibold))
+                                }
+                                .foregroundStyle(.pink)
+                                .padding(.horizontal, 10 * scale)
+                                .padding(.vertical, 6 * scale)
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.plain)
+                            .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 10 * scale))
                         }
-                        .frame(width: 36 * scale)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .padding(.horizontal, 8 * scale)
 
-                    Spacer().frame(height: 4 * scale)
-
-                    Text(contact.displayName)
-                        .font(.system(size: 17 * scale, weight: .semibold))
-
-                    Spacer().frame(height: 1 * scale)
-
-                    // Compact single-line: relationship · time
-                    HStack(spacing: 4) {
-                        Text(contact.relationship.label)
-                            .foregroundStyle(.secondary)
-
-                        if let date = contact.lastInteractionDate {
-                            Text("·").foregroundStyle(.tertiary)
-                            Text(date, style: .relative)
-                                .foregroundStyle(.tertiary)
-                        } else {
-                            Text("·").foregroundStyle(.tertiary)
-                            Text("say hi first 👋")
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                    .font(.system(size: 11 * scale))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-
-                    Spacer().frame(height: 6 * scale)
+                    Spacer(minLength: 28 * scale)
 
                     // Three circle action buttons
                     HStack(spacing: 0) {
                         Spacer()
                         circleAction(label: contact.currentMood?.label ?? "Mood", action: { showMoodPicker = true }) {
                             if let mood = contact.currentMood {
-                                Text(mood.emoji).font(.system(size: 20 * scale))
+                                Text(mood.emoji).font(.system(size: 24 * scale))
                             } else {
                                 Image(systemName: "face.smiling")
-                                    .font(.system(size: 18 * scale, weight: .medium))
+                                    .font(.system(size: 22 * scale, weight: .medium))
                                     .foregroundStyle(.secondary)
                             }
                         }
                         Spacer()
                         circleAction(label: "Nudge", action: { showNudgePicker = true }) {
                             Image(systemName: "hand.tap")
-                                .font(.system(size: 18 * scale, weight: .medium))
+                                .font(.system(size: 22 * scale, weight: .medium))
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
                         circleAction(label: "Goals", action: { showGoals = true }) {
                             Image(systemName: "trophy.fill")
-                                .font(.system(size: 18 * scale, weight: .medium))
+                                .font(.system(size: 22 * scale, weight: .medium))
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
@@ -183,11 +192,16 @@ struct PersonSpaceView: View {
                 SendNudgeView(contact: contact)
                     .onDisappear { checkAchievements(contact: contact) }
             }
+            .sheet(isPresented: $showMusicPicker) {
+                SuggestSongView(contact: contact)
+                    .onDisappear { checkAchievements(contact: contact) }
+            }
             .sheet(isPresented: $showCustomize) {
                 CustomizeSpaceView(contact: contact)
             }
             .sheet(isPresented: $showGoals) {
                 GoalsView(contact: contact)
+                    .onDisappear { checkAchievements(contact: contact) }
             }
         }
     }
@@ -212,9 +226,12 @@ struct PersonSpaceView: View {
                     .id(burstID)
             }
 
-            Text(contact.emoji)
-                .font(.system(size: 22 * scale))
-                .scaleEffect(pulseScale)
+            Button { showCustomize = true } label: {
+                Text(contact.emoji)
+                    .font(.system(size: 22 * scale))
+                    .scaleEffect(pulseScale)
+            }
+            .buttonStyle(.plain)
         }
         .frame(width: outer, height: outer)
     }
@@ -278,7 +295,7 @@ struct PersonSpaceView: View {
         VStack(spacing: 4 * scale) {
             Button(action: action) {
                 icon()
-                    .frame(width: 44 * scale, height: 44 * scale)
+                    .frame(width: 54 * scale, height: 54 * scale)
             }
             .buttonStyle(.plain)
             .glassEffect(.regular.interactive(), in: Circle())

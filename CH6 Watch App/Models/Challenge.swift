@@ -64,7 +64,7 @@ enum ChallengeType: String, Codable, CaseIterable, Identifiable {
         case .setMoodTogether: "Both set a mood today"
         case .streakWeek: "Keep a 7-day streak"
         case .fiveNudges: "Send 5 nudges this week"
-        case .allMoods: "Use all 6 moods this week"
+        case .allMoods: "Use all 12 moods this week"
         case .thirtyDayStreak: "Keep a 30-day streak"
         case .hundredNudges: "Send 100 nudges this month"
         case .moodJourney: "Set mood every day this month"
@@ -92,7 +92,7 @@ enum ChallengeType: String, Codable, CaseIterable, Identifiable {
         case .setMoodTogether: 2
         case .streakWeek: 7
         case .fiveNudges: 5
-        case .allMoods: 6
+        case .allMoods: 12
         case .thirtyDayStreak: 30
         case .hundredNudges: 100
         case .moodJourney: 30

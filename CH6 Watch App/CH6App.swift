@@ -13,7 +13,7 @@ struct CH6_Watch_AppApp: App {
 
     // Bump this string any time you change a @Model class or a Codable enum stored in one.
     // The store will be wiped on the next launch so stale data doesn't cause issues.
-    private static let schemaVersion = "v4"
+    private static let schemaVersion = "v6"
 
     init() {
         if UserDefaults.standard.string(forKey: "schemaVersion") != Self.schemaVersion {
@@ -26,7 +26,7 @@ struct CH6_Watch_AppApp: App {
         WindowGroup {
             MainTabView()
         }
-        .modelContainer(for: [MoodEntry.self, NudgeEntry.self, Contact.self, Challenge.self, Achievement.self])
+        .modelContainer(for: [MoodEntry.self, NudgeEntry.self, Contact.self, Challenge.self, Achievement.self, SongSuggestion.self, CustomChallenge.self])
     }
 
     private static func clearStore() {

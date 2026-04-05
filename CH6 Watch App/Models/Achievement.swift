@@ -24,6 +24,14 @@ enum AchievementType: String, Codable, CaseIterable, Identifiable {
     case oneMonth
     case anniversary
 
+    // Music
+    case firstSong
+    case djFriend
+
+    // Custom Challenges
+    case challengeCreator
+    case customChampion
+
     // Secret
     case nightOwl
     case earlyBird
@@ -48,6 +56,10 @@ enum AchievementType: String, Codable, CaseIterable, Identifiable {
         case .dayOne: return "🤝"
         case .oneMonth: return "🗓️"
         case .anniversary: return "🎂"
+        case .firstSong: return "🎵"
+        case .djFriend: return "🎧"
+        case .challengeCreator: return "✏️"
+        case .customChampion: return "🏅"
         case .nightOwl: return "🦉"
         case .earlyBird: return "☀️"
         case .onFire: return "🔥"
@@ -71,6 +83,10 @@ enum AchievementType: String, Codable, CaseIterable, Identifiable {
         case .dayOne: return "Day One"
         case .oneMonth: return "One Month"
         case .anniversary: return "Anniversary"
+        case .firstSong: return "First Note"
+        case .djFriend: return "DJ Friend"
+        case .challengeCreator: return "Challenge Creator"
+        case .customChampion: return "Custom Champion"
         case .nightOwl: return "Night Owl"
         case .earlyBird: return "Early Bird"
         case .onFire: return "On Fire"
@@ -89,11 +105,15 @@ enum AchievementType: String, Codable, CaseIterable, Identifiable {
         case .alwaysOn: return "Send 100 nudges"
         case .orbiting: return "Send 500 nudges"
         case .firstFeeling: return "Set your first mood"
-        case .fullSpectrum: return "Use all 6 moods"
+        case .fullSpectrum: return "Use all 12 moods"
         case .openBook: return "Share 50 moods"
         case .dayOne: return "Connect for 1 day"
         case .oneMonth: return "Stay connected 30 days"
         case .anniversary: return "Stay connected 365 days"
+        case .firstSong: return "Suggest your first song"
+        case .djFriend: return "Suggest 10 songs"
+        case .challengeCreator: return "Complete a custom challenge"
+        case .customChampion: return "Complete 5 custom challenges"
         case .nightOwl: return "Set a mood after midnight"
         case .earlyBird: return "Set a mood before 7am"
         case .onFire: return "Send 3 nudges in one day"
@@ -103,7 +123,7 @@ enum AchievementType: String, Codable, CaseIterable, Identifiable {
 
     var isSecret: Bool {
         switch self {
-        case .nightOwl, .earlyBird, .onFire, .soulmate: return true
+        case .nightOwl, .earlyBird, .onFire, .soulmate, .djFriend: return true
         default: return false
         }
     }
@@ -112,6 +132,8 @@ enum AchievementType: String, Codable, CaseIterable, Identifiable {
         case streak = "Streak"
         case nudge = "Nudge"
         case mood = "Mood"
+        case music = "Music"
+        case custom = "Custom"
         case time = "Time"
         case secret = "Secret"
     }
@@ -121,6 +143,8 @@ enum AchievementType: String, Codable, CaseIterable, Identifiable {
         case .firstSpark, .growing, .rooted, .unbreakable: return .streak
         case .firstWave, .penPal, .alwaysOn, .orbiting: return .nudge
         case .firstFeeling, .fullSpectrum, .openBook: return .mood
+        case .firstSong, .djFriend: return .music
+        case .challengeCreator, .customChampion: return .custom
         case .dayOne, .oneMonth, .anniversary: return .time
         case .nightOwl, .earlyBird, .onFire, .soulmate: return .secret
         }

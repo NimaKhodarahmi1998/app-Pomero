@@ -7,131 +7,195 @@ struct CustomizeSpaceView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                NavigationLink {
-                    RelationshipPickerView(contact: contact)
-                } label: {
-                    Label("Relationship", systemImage: contact.relationship.icon)
-                }
+            ScrollView {
+                VStack(spacing: 10) {
 
-                NavigationLink {
-                    EmojiPickerView(contact: contact)
-                } label: {
-                    Label {
-                        Text("Emoji")
-                    } icon: {
-                        Text(contact.emoji)
+                    NavigationLink {
+                        RelationshipPickerView(contact: contact)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: contact.relationship.icon)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(.blue)
+                                .frame(width: 24)
+                            Text("Relationship")
+                                .font(.footnote.weight(.medium))
+                            Spacer()
+                            Text(contact.relationship.label)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            Image(systemName: "chevron.right")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 13)
+                        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 16))
                     }
-                }
+                    .buttonStyle(.plain)
 
-                NavigationLink {
-                    ColorPickerView(contact: contact)
-                } label: {
-                    Label {
-                        Text("Background")
-                    } icon: {
-                        Circle()
-                            .fill(colorFor(contact.spaceColor))
-                            .frame(width: 16, height: 16)
+                    NavigationLink {
+                        EmojiPickerView(contact: contact)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Text(contact.emoji)
+                                .font(.system(size: 18))
+                                .frame(width: 24)
+                            Text("Emoji")
+                                .font(.footnote.weight(.medium))
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 13)
+                        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 16))
                     }
+                    .buttonStyle(.plain)
+
+                    NavigationLink {
+                        ColorPickerView(contact: contact)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Circle()
+                                .fill(colorFor(contact.spaceColor))
+                                .frame(width: 18, height: 18)
+                                .shadow(color: colorFor(contact.spaceColor).opacity(0.7), radius: 5)
+                                .frame(width: 24)
+                            Text("Background")
+                                .font(.footnote.weight(.medium))
+                            Spacer()
+                            Text(contact.spaceColor.rawValue.capitalized)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            Image(systemName: "chevron.right")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 13)
+                        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 16))
+                    }
+                    .buttonStyle(.plain)
+
                 }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 12)
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle("Style")
         }
+        .presentationBackground(.ultraThinMaterial)
     }
 }
 
-// MARK: - Relationship
+// MARK: - Relationship picker
 
 private struct RelationshipPickerView: View {
     var contact: Contact
 
     var body: some View {
-        List {
-            ForEach(RelationshipType.allCases) { rel in
-                Button {
-                    contact.relationship = rel
-                    WKInterfaceDevice.current().play(.click)
-                } label: {
-                    HStack {
-                        Label(rel.label, systemImage: rel.icon)
-                        Spacer()
-                        if contact.relationship == rel {
-                            Image(systemName: "checkmark")
-                                .foregroundStyle(.tint)
+        ScrollView {
+            VStack(spacing: 8) {
+                ForEach(RelationshipType.allCases) { rel in
+                    Button {
+                        contact.relationship = rel
+                        WKInterfaceDevice.current().play(.click)
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: rel.icon)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.blue)
+                                .frame(width: 20)
+                            Text(rel.label)
+                                .font(.footnote)
+                            Spacer()
+                            if contact.relationship == rel {
+                                Image(systemName: "checkmark")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.tint)
+                            }
                         }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 14))
                     }
+                    .buttonStyle(.plain)
                 }
             }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 8)
         }
+        .scrollContentBackground(.hidden)
         .navigationTitle("Relationship")
     }
 }
 
-// MARK: - Emoji
+// MARK: - Emoji picker
 
 private struct EmojiPickerView: View {
     var contact: Contact
 
     private let emojiOptions = [
-        // Hearts & love
         "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "💕", "💞", "💗", "❤️‍🔥",
-        // Animals
         "🦊", "🐻", "🐰", "🐱", "🐶", "🦋", "🐼", "🐨", "🦁", "🐯", "🦄", "🐸",
         "🐧", "🦉", "🐺", "🦚", "🐬",
-        // Nature
         "🌸", "🌻", "🌹", "🌺", "🍀", "🌿", "🌴", "🌵", "🍁", "🌾",
-        // Sky & elements
         "⭐", "🌙", "☀️", "🌈", "⚡", "🌊", "🔥", "❄️", "🌼", "☁️",
-        // Fun
         "✨", "💎", "🎯", "🎸", "🎨", "🍓", "🫐", "🎀", "🪐", "🎵"
     ]
 
     var body: some View {
         ScrollView {
-            let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
-            LazyVGrid(columns: columns, spacing: 12) {
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
+            LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(emojiOptions, id: \.self) { emoji in
                     Button {
                         contact.emoji = emoji
                         WKInterfaceDevice.current().play(.click)
                     } label: {
                         Text(emoji)
-                            .font(.title2)
+                            .font(.title3)
                             .frame(maxWidth: .infinity)
                             .aspectRatio(1, contentMode: .fit)
+                            .glassEffect(
+                                contact.emoji == emoji ? .regular.interactive() : .regular,
+                                in: RoundedRectangle(cornerRadius: 10)
+                            )
                             .overlay {
                                 if contact.emoji == emoji {
-                                    Circle().strokeBorder(.white, lineWidth: 2.5)
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .strokeBorder(.white.opacity(0.9), lineWidth: 1.5)
                                 }
                             }
                     }
                     .buttonStyle(.plain)
-                    .glassEffect(.regular.interactive(), in: Circle())
                     .scrollTransition(.animated.threshold(.visible(0.3))) { content, phase in
                         content
-                            .scaleEffect(1 - abs(phase.value) * 0.3)
-                            .opacity(1 - abs(phase.value) * 0.5)
+                            .scaleEffect(1 - abs(phase.value) * 0.2)
+                            .opacity(1 - abs(phase.value) * 0.4)
                     }
                 }
             }
             .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.vertical, 8)
         }
         .focusable()
+        .scrollContentBackground(.hidden)
         .navigationTitle("Emoji")
     }
 }
 
-// MARK: - Color
+// MARK: - Color picker
 
 private struct ColorPickerView: View {
     var contact: Contact
 
     var body: some View {
         ScrollView {
-            let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 3)
-            LazyVGrid(columns: columns, spacing: 12) {
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
+            LazyVGrid(columns: columns, spacing: 10) {
                 ForEach(SpaceColor.allCases) { color in
                     Button {
                         contact.spaceColor = color
@@ -140,6 +204,7 @@ private struct ColorPickerView: View {
                         Circle()
                             .fill(colorFor(color))
                             .aspectRatio(1, contentMode: .fit)
+                            .shadow(color: colorFor(color).opacity(0.6), radius: 5)
                             .overlay {
                                 if contact.spaceColor == color {
                                     Circle().strokeBorder(.white, lineWidth: 2.5)
@@ -149,15 +214,16 @@ private struct ColorPickerView: View {
                     .buttonStyle(.plain)
                     .scrollTransition(.animated.threshold(.visible(0.3))) { content, phase in
                         content
-                            .scaleEffect(1 - abs(phase.value) * 0.3)
-                            .opacity(1 - abs(phase.value) * 0.5)
+                            .scaleEffect(1 - abs(phase.value) * 0.2)
+                            .opacity(1 - abs(phase.value) * 0.4)
                     }
                 }
             }
             .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.vertical, 8)
         }
         .focusable()
+        .scrollContentBackground(.hidden)
         .navigationTitle("Background")
     }
 }
