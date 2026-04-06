@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 
 struct HomeView: View {
     var body: some View {
@@ -19,4 +20,8 @@ struct HomeView: View {
             .navigationTitle("CH6")
         }
     }
+}
+
+#Preview {
+    HomeView()
 }

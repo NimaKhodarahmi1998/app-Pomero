@@ -97,8 +97,14 @@ struct SettingsSpaceView: View {
         .alert("Remove?", isPresented: $showDeleteAlert, presenting: contactToDelete) { contact in
             Button("Cancel", role: .cancel) { contactToDelete = nil }
             Button("Remove", role: .destructive) {
+                let name = contact.name
                 modelContext.delete(contact)
                 contactToDelete = nil
+
+                // Sync to phone
+                WatchConnectivityService.shared.send(
+                    WatchMessage.contactDeleted(name: name)
+                )
             }
         } message: { contact in
             Text("Remove \(contact.displayName)? This can't be undone.")

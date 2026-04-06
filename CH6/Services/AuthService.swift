@@ -9,6 +9,7 @@ final class AuthService {
     var currentUser: FirebaseAuth.User?
     var isSignedIn: Bool { currentUser != nil }
     var isLoading = true
+    var uid: String? { currentUser?.uid }
 
     private var authStateHandle: AuthStateDidChangeListenerHandle?
 
@@ -22,6 +23,7 @@ final class AuthService {
         authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             self?.currentUser = user
             self?.isLoading = false
+            PhoneConnectivityService.shared.pushAuthState()
         }
     }
 

@@ -87,6 +87,21 @@ struct CustomizeSpaceView: View {
             .navigationTitle("Style")
         }
         .presentationBackground(.ultraThinMaterial)
+        .onChange(of: contact.relationship) {
+            WatchConnectivityService.shared.send(
+                WatchMessage.contactUpdated(name: contact.name, fields: ["relationship": contact.relationship.rawValue])
+            )
+        }
+        .onChange(of: contact.emoji) {
+            WatchConnectivityService.shared.send(
+                WatchMessage.contactUpdated(name: contact.name, fields: ["emoji": contact.emoji])
+            )
+        }
+        .onChange(of: contact.spaceColor) {
+            WatchConnectivityService.shared.send(
+                WatchMessage.contactUpdated(name: contact.name, fields: ["spaceColor": contact.spaceColor.rawValue])
+            )
+        }
     }
 }
 

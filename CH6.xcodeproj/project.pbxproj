@@ -8,11 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		787E6BDE2F7680FA00079BA5 /* CH6 Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 787E6BDD2F7680FA00079BA5 /* CH6 Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		787E6BF32F7680FB00079BA5 /* MusicKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 787E6BF12F7680FB00079BA5 /* MusicKit.framework */; };
 		A14E078E2F7D06EA00D6580D /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A14E078D2F7D06EA00D6580D /* FirebaseAuth */; };
 		A14E07902F7D06EA00D6580D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A14E078F2F7D06EA00D6580D /* FirebaseFirestore */; };
 		A14E07922F7D070000D6580D /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A14E07912F7D070000D6580D /* FirebaseAuth */; };
 		A14E07942F7D070000D6580D /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A14E07932F7D070000D6580D /* FirebaseFirestore */; };
-		787E6BF32F7680FB00079BA5 /* MusicKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 787E6BF12F7680FB00079BA5 /* MusicKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +56,11 @@
 			path = "CH6 Watch App";
 			sourceTree = "<group>";
 		};
+		A1SHARED002FA3000000000A /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +91,7 @@
 			children = (
 				787E6BD22F7680F900079BA5 /* CH6 */,
 				787E6BE12F7680FA00079BA5 /* CH6 Watch App */,
+				A1SHARED002FA3000000000A /* Shared */,
 				787E6BF22F7680FB00079BA5 /* Frameworks */,
 				787E6BD12F7680F900079BA5 /* Products */,
 			);
@@ -127,6 +133,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				787E6BD22F7680F900079BA5 /* CH6 */,
+				A1SHARED002FA3000000000A /* Shared */,
 			);
 			name = CH6;
 			packageProductDependencies = (
@@ -151,6 +158,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				787E6BE12F7680FA00079BA5 /* CH6 Watch App */,
+				A1SHARED002FA3000000000A /* Shared */,
 			);
 			name = "CH6 Watch App";
 			packageProductDependencies = (

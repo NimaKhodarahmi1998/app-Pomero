@@ -15,6 +15,15 @@ enum AchievementService {
                 achievement.unlockedAt = .now
                 justUnlocked = achievement.type
                 WKInterfaceDevice.current().play(.success)
+
+                // Sync to phone
+                WatchConnectivityService.shared.send(
+                    WatchMessage.achievementUnlocked(
+                        type: achievement.type.rawValue,
+                        contactName: contact.name,
+                        unlockedAt: achievement.unlockedAt!.timeIntervalSince1970
+                    )
+                )
             }
         }
 

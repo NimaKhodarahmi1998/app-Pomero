@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import FirebaseCore
 
 @main
 struct CH6_Watch_AppApp: App {
@@ -16,19 +15,26 @@ struct CH6_Watch_AppApp: App {
     // The store will be wiped on the next launch so stale data doesn't cause issues.
     private static let schemaVersion = "v6"
 
+    let container: ModelContainer
+
     init() {
-        FirebaseApp.configure()
         if UserDefaults.standard.string(forKey: "schemaVersion") != Self.schemaVersion {
             Self.clearStore()
             UserDefaults.standard.set(Self.schemaVersion, forKey: "schemaVersion")
         }
+
+        let container = try! ModelContainer(for: MoodEntry.self, NudgeEntry.self, Contact.self, Challenge.self, UserProfile.self, Achievement.self, SongSuggestion.self, CustomChallenge.self)
+        self.container = container
+
+        WatchConnectivityService.shared.modelContainer = container
+        WatchConnectivityService.shared.activate()
     }
 
     var body: some Scene {
         WindowGroup {
             MainTabView()
         }
-        .modelContainer(for: [MoodEntry.self, NudgeEntry.self, Contact.self, Challenge.self, UserProfile.self, Achievement.self, SongSuggestion.self, CustomChallenge.self])
+        .modelContainer(container)
     }
 
     private static func clearStore() {

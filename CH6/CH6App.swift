@@ -13,6 +13,7 @@ struct CH6App: App {
 
     init() {
         FirebaseApp.configure()
+        PhoneConnectivityService.shared.activate()
     }
 
     var body: some Scene {

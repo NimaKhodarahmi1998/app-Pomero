@@ -158,6 +158,25 @@ struct MoodSelectionView: View {
         ChallengeService.recordMoodSet(for: contact, context: modelContext)
         WKInterfaceDevice.current().play(.success)
 
+        // Sync to phone
+        let stats = WatchMessage.contactStatsPayload(
+            streakCount: contact.streakCount,
+            totalNudgesSent: contact.totalNudgesSent,
+            totalMoodsSet: contact.totalMoodsSet,
+            uniqueMoodsUsed: contact.uniqueMoodsUsed,
+            currentMood: contact.currentMood?.rawValue,
+            lastInteractionDate: contact.lastInteractionDate?.timeIntervalSince1970,
+            lastNudgeDate: contact.lastNudgeDate?.timeIntervalSince1970
+        )
+        WatchConnectivityService.shared.send(
+            WatchMessage.moodSet(
+                type: currentMood.rawValue,
+                contactName: contact.name,
+                note: nil,
+                contactStats: stats
+            )
+        )
+
         saved = true
         Task {
             try? await Task.sleep(for: .seconds(1))

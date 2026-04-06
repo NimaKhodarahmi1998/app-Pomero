@@ -177,6 +177,17 @@ struct SuggestSongView: View {
         )
         modelContext.insert(suggestion)
         WKInterfaceDevice.current().play(.notification)
+
+        // Sync to phone
+        WatchConnectivityService.shared.send(
+            WatchMessage.songSuggested(
+                songTitle: song.title,
+                artistName: song.artistName,
+                albumTitle: song.albumTitle ?? "",
+                appleMusicURL: song.url?.absoluteString,
+                contactName: contact.name
+            )
+        )
         suggestedSong = song
         suggested = true
         Task {

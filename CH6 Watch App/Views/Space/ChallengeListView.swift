@@ -74,6 +74,16 @@ struct ChallengeListView: View {
         challenge.isCompleted.toggle()
         challenge.completedAt = challenge.isCompleted ? .now : nil
         WKInterfaceDevice.current().play(.click)
+
+        // Sync to phone
+        WatchConnectivityService.shared.send(
+            WatchMessage.customChallengeToggled(
+                title: challenge.title,
+                contactName: challenge.contactName,
+                isCompleted: challenge.isCompleted,
+                completedAt: challenge.completedAt?.timeIntervalSince1970
+            )
+        )
     }
 }
 
@@ -129,7 +139,14 @@ struct AddCustomChallengeView: View {
     private func save() {
         let trimmed = title.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
-        modelContext.insert(CustomChallenge(title: trimmed, contactName: contactName))
+        let custom = CustomChallenge(title: trimmed, contactName: contactName)
+        modelContext.insert(custom)
+
+        // Sync to phone
+        WatchConnectivityService.shared.send(
+            WatchMessage.customChallengeCreated(title: trimmed, contactName: contactName)
+        )
+
         dismiss()
     }
 }

@@ -329,6 +329,18 @@ struct OnboardingView: View {
 
         AchievementService.createAll(for: name, context: modelContext)
         WKInterfaceDevice.current().play(.success)
+
+        // Sync to phone
+        WatchConnectivityService.shared.send(
+            WatchMessage.contactCreated(
+                name: name,
+                relationship: selectedRelationship.rawValue,
+                emoji: selectedEmoji,
+                spaceColor: selectedColor.rawValue,
+                challengeTypes: challengeTypes.map(\.rawValue)
+            )
+        )
+
         onComplete()
     }
 }

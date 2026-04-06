@@ -177,6 +177,25 @@ struct SendNudgeView: View {
         ChallengeService.recordNudgeSent(for: contact, context: modelContext)
         WKInterfaceDevice.current().play(.notification)
 
+        // Sync to phone
+        let stats = WatchMessage.contactStatsPayload(
+            streakCount: contact.streakCount,
+            totalNudgesSent: contact.totalNudgesSent,
+            totalMoodsSet: contact.totalMoodsSet,
+            uniqueMoodsUsed: contact.uniqueMoodsUsed,
+            currentMood: contact.currentMood?.rawValue,
+            lastInteractionDate: contact.lastInteractionDate?.timeIntervalSince1970,
+            lastNudgeDate: contact.lastNudgeDate?.timeIntervalSince1970
+        )
+        WatchConnectivityService.shared.send(
+            WatchMessage.nudgeSent(
+                type: currentNudge.rawValue,
+                contactName: contact.name,
+                isSent: true,
+                contactStats: stats
+            )
+        )
+
         sent = true
         Task {
             try? await Task.sleep(for: .seconds(1))
