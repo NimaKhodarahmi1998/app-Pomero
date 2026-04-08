@@ -23,7 +23,6 @@ Package.resolved
 .swiftpm/
 
 # Firebase / Google
-GoogleService-Info.plist
 google-services.json
 firebase-debug.log
 firebase-debug.*.log
