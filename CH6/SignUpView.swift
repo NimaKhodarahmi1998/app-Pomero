@@ -6,6 +6,7 @@ struct SignUpView: View {
     @State private var confirmPassword = ""
     @State private var errorMessage: String?
     @State private var isLoading = false
+    @FocusState private var passwordFocused: Bool
     @Environment(\.dismiss) private var dismiss
 
     private var trimmedEmail: String { email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
@@ -15,14 +16,37 @@ struct SignUpView: View {
         return trimmedEmail.wholeMatch(of: pattern) != nil
     }
 
-    private var passwordHasMinLength: Bool { password.count >= 8 }
-    private var passwordHasUppercase: Bool { password.range(of: "[A-Z]", options: .regularExpression) != nil }
-    private var passwordHasLowercase: Bool { password.range(of: "[a-z]", options: .regularExpression) != nil }
-    private var passwordHasNumber: Bool { password.range(of: "[0-9]", options: .regularExpression) != nil }
     private var passwordsMatch: Bool { !confirmPassword.isEmpty && password == confirmPassword }
 
-    private var isPasswordStrong: Bool {
-        passwordHasMinLength && passwordHasUppercase && passwordHasLowercase && passwordHasNumber
+    private var passwordScore: Int {
+        var score = 0
+        if password.count >= 8 { score += 1 }
+        if password.range(of: "[A-Z]", options: .regularExpression) != nil { score += 1 }
+        if password.range(of: "[a-z]", options: .regularExpression) != nil { score += 1 }
+        if password.range(of: "[0-9]", options: .regularExpression) != nil { score += 1 }
+        return score
+    }
+
+    private var isPasswordStrong: Bool { passwordScore == 4 }
+
+    private var strengthLabel: String {
+        switch passwordScore {
+        case 0, 1: "Weak"
+        case 2: "Fair"
+        case 3: "Good"
+        case 4: "Strong"
+        default: ""
+        }
+    }
+
+    private var strengthColor: Color {
+        switch passwordScore {
+        case 0, 1: .red
+        case 2: .orange
+        case 3: .yellow
+        case 4: .green
+        default: .clear
+        }
     }
 
     private var canSubmit: Bool {
@@ -65,32 +89,43 @@ struct SignUpView: View {
                     }
 
                     // Password
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 6) {
                         SecureField("Password", text: $password)
-                            .textContentType(.newPassword)
+                            .focused($passwordFocused)
                             .padding()
                             .background(.ultraThinMaterial)
                             .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(passwordBorderColor, lineWidth: 1)
-                            )
 
-                        if !password.isEmpty {
-                            VStack(alignment: .leading, spacing: 2) {
-                                requirementRow("At least 8 characters", met: passwordHasMinLength)
-                                requirementRow("One uppercase letter", met: passwordHasUppercase)
-                                requirementRow("One lowercase letter", met: passwordHasLowercase)
-                                requirementRow("One number", met: passwordHasNumber)
+                        let showBar = passwordFocused && !password.isEmpty
+
+                        // Strength bar
+                        VStack(alignment: .leading, spacing: 4) {
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    Capsule()
+                                        .fill(Color.secondary.opacity(0.15))
+
+                                    Capsule()
+                                        .fill(strengthColor)
+                                        .frame(width: geo.size.width * CGFloat(passwordScore) / 4.0)
+                                }
                             }
-                            .padding(.leading, 4)
+                            .frame(height: 4)
+                            .padding(.horizontal, 4)
+
+                            Text(strengthLabel)
+                                .font(.caption2)
+                                .foregroundStyle(strengthColor)
+                                .padding(.leading, 4)
                         }
+                        .frame(maxHeight: showBar ? 24 : 0)
+                        .clipped()
+                        .animation(.easeInOut(duration: 0.25), value: showBar)
                     }
 
                     // Confirm Password
                     VStack(alignment: .leading, spacing: 4) {
                         SecureField("Confirm Password", text: $confirmPassword)
-                            .textContentType(.newPassword)
                             .padding()
                             .background(.ultraThinMaterial)
                             .cornerRadius(12)
@@ -99,12 +134,11 @@ struct SignUpView: View {
                                     .stroke(confirmBorderColor, lineWidth: 1)
                             )
 
-                        if !confirmPassword.isEmpty && !passwordsMatch {
-                            Text("Passwords don't match")
-                                .font(.caption2)
-                                .foregroundStyle(.red)
-                                .padding(.leading, 4)
-                        }
+                        Text("Passwords don't match")
+                            .font(.caption2)
+                            .foregroundStyle(.red)
+                            .padding(.leading, 4)
+                            .opacity(!confirmPassword.isEmpty && !passwordsMatch ? 1 : 0)
                     }
                 }
                 .padding(.horizontal)
@@ -144,27 +178,9 @@ struct SignUpView: View {
         return isEmailValid ? .green.opacity(0.5) : .red.opacity(0.5)
     }
 
-    private var passwordBorderColor: Color {
-        guard !password.isEmpty else { return .clear }
-        return isPasswordStrong ? .green.opacity(0.5) : .orange.opacity(0.5)
-    }
-
     private var confirmBorderColor: Color {
         guard !confirmPassword.isEmpty else { return .clear }
         return passwordsMatch ? .green.opacity(0.5) : .red.opacity(0.5)
-    }
-
-    // MARK: - Requirement Row
-
-    private func requirementRow(_ text: String, met: Bool) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: met ? "checkmark.circle.fill" : "circle")
-                .font(.caption2)
-                .foregroundStyle(met ? .green : .secondary)
-            Text(text)
-                .font(.caption2)
-                .foregroundStyle(met ? .primary : .secondary)
-        }
     }
 
     // MARK: - Sign Up
