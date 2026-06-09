@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "Magrana_appIcon.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

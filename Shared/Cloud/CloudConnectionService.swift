@@ -112,8 +112,11 @@ final class CloudConnectionService {
         connection[CloudKitSchema.ConnectionKey.inviterName] = displayName
 
         let share = CKShare(rootRecord: connection)
-        share[CKShare.SystemFieldKey.title] = "Pomero · \(displayName)"
-        share.publicPermission = .none
+        share[CKShare.SystemFieldKey.title] = "Magrana · \(displayName)"
+        // Anyone who opens the share URL (decoded from the connect code) joins as a
+        // read-write participant — required for code-based pairing, and so the joiner
+        // can write their own moods/nudges back into the shared zone.
+        share.publicPermission = .readWrite
 
         // Create the zone first, then save the root record and its share atomically.
         _ = try await privateDatabase.modifyRecordZones(saving: [zone], deleting: [])
@@ -148,6 +151,28 @@ final class CloudConnectionService {
             }
         }
         return records
+    }
+
+    /// Read-only: fetches every event record (Mood/Nudge/Song) in a connection's zone.
+    /// Used by the iOS companion to show the other person's stats. Uses change-tracking,
+    /// so no CloudKit Console index is required.
+    func fetchActivity(in zoneID: CKRecordZone.ID) async -> [CKRecord] {
+        let database = zoneID.ownerName == CKCurrentUserDefaultName ? privateDatabase : sharedDatabase
+        return await withCheckedContinuation { continuation in
+            var records: [CKRecord] = []
+            let configuration = CKFetchRecordZoneChangesOperation.ZoneConfiguration()
+            let operation = CKFetchRecordZoneChangesOperation(
+                recordZoneIDs: [zoneID],
+                configurationsByRecordZoneID: [zoneID: configuration]
+            )
+            operation.recordWasChangedBlock = { _, result in
+                if case .success(let record) = result { records.append(record) }
+            }
+            operation.fetchRecordZoneChangesResultBlock = { _ in
+                continuation.resume(returning: records)
+            }
+            database.add(operation)
+        }
     }
 
     // MARK: - Connect codes & QR (Phase 2b)
@@ -187,6 +212,36 @@ final class CloudConnectionService {
             throw CloudConnectionError.invalidCode
         }
         try await acceptShare(from: url)
+    }
+
+    /// Joins a connection from a typed connect code and records the joiner's own name on
+    /// the shared root record, so the *inviter's* device can name the contact after the
+    /// person who joined (rather than after themselves). The local contact itself is
+    /// materialised by the next `ConnectionSyncService.sync()`.
+    func joinConnection(code: String, myName: String) async throws {
+        let normalized = code.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        guard !normalized.isEmpty else { throw CloudConnectionError.invalidCode }
+
+        let inviteID = CKRecord.ID(recordName: "invite-\(normalized)")
+        let invite: CKRecord
+        do {
+            invite = try await publicDatabase.record(for: inviteID)
+        } catch {
+            throw CloudConnectionError.invalidCode
+        }
+        guard let urlString = invite["shareURL"] as? String, let url = URL(string: urlString) else {
+            throw CloudConnectionError.invalidCode
+        }
+
+        let metadata = try await fetchShareMetadata(from: url)
+        try await acceptShare(metadata: metadata)
+
+        // Best-effort: stamp my name onto the shared root so the inviter sees who joined.
+        let trimmed = myName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty, let root = metadata.rootRecord {
+            root[CloudKitSchema.ConnectionKey.inviteeName] = trimmed
+            _ = try? await sharedDatabase.save(root)
+        }
     }
 
     /// Accepts a share given its URL (e.g. decoded from a scanned QR code).

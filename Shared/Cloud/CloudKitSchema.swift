@@ -11,7 +11,7 @@ enum CloudKitSchema {
 
     /// Must match the iCloud container enabled in Signing & Capabilities and the
     /// `com.apple.developer.icloud-container-identifiers` entitlement.
-    static let containerID = "iCloud.Nima-Khodarahmi.Pomero"
+    static let containerID = "iCloud.Nima-Khodarahmi.Magrana"
 
     /// Each connection (one pair of people) lives in its own custom record zone so it
     /// can be shared independently via `CKShare`. Zone names are

@@ -1,8 +1,8 @@
-# Pomero ⌚️
+# Magrana ⌚️
 
 **Stay close to the people who matter — right from your wrist.**
 
-Pomero is a watchOS-first app for nurturing the relationships in your life. Set your mood, send lightweight nudges, suggest songs, build streaks, and unlock achievements with the people you care about. Designed for the small screen first, every interaction is glanceable, tactile, and quick.
+Magrana is a watchOS-first app for nurturing the relationships in your life. Set your mood, send lightweight nudges, suggest songs, build streaks, and unlock achievements with the people you care about. Designed for the small screen first, every interaction is glanceable, tactile, and quick.
 
 ---
 
@@ -25,11 +25,11 @@ Pomero is a watchOS-first app for nurturing the relationships in your life. Set 
 
 ## 🏗️ Architecture
 
-Pomero is built with **SwiftUI** and **SwiftData**, organized by feature:
+Magrana is built with **SwiftUI** and **SwiftData**, organized by feature:
 
 ```
-Pomero Watch App/
-├── PomeroApp.swift        # @main — sets up the SwiftData container
+Magrana Watch App/
+├── MagranaApp.swift        # @main — sets up the SwiftData container
 ├── Models/                # @Model data types + supporting enums
 │   ├── Contact.swift      #   a person + relationship, streak, stats, customization
 │   ├── Mood.swift         #   MoodType + MoodEntry
@@ -53,7 +53,7 @@ Pomero Watch App/
 
 ### Data & persistence
 
-All data is stored locally with **SwiftData** (`@Model` classes). There are no manual migrations yet — instead, `PomeroApp.swift` keeps a `schemaVersion` string. Bumping it wipes the local store on next launch, so model changes during development never cause crashes from stale data.
+All data is stored locally with **SwiftData** (`@Model` classes). There are no manual migrations yet — instead, `MagranaApp.swift` keeps a `schemaVersion` string. Bumping it wipes the local store on next launch, so model changes during development never cause crashes from stale data.
 
 ### Logic
 
@@ -76,13 +76,13 @@ Business logic lives in stateless service enums, keeping views focused on presen
 1. Clone the repo:
    ```bash
    git clone <your-repo-url>
-   cd Pomero
+   cd Magrana
    ```
 2. Open the project:
    ```bash
-   open Pomero.xcodeproj
+   open Magrana.xcodeproj
    ```
-3. Select the **Pomero Watch App** scheme and a watch simulator (or your device).
+3. Select the **Magrana Watch App** scheme and a watch simulator (or your device).
 4. Press **⌘R** to build and run.
 
 ## 🗺️ Roadmap
